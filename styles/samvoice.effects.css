@@ -1,0 +1,294 @@
+/* Effects panel. Owner: parametric effect presets and effect cards. */
+.samvoice-effect-toolbar {
+    display: grid;
+    gap: var(--sam-gap-2);
+    margin-top: var(--sam-gap-2);
+    padding: var(--sam-gap-2);
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-md);
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.samvoice-effect-preset-row,
+.samvoice-effect-preset-save-row,
+.samvoice-effect-utility-row {
+    display: grid;
+    gap: var(--sam-gap-2);
+    align-items: center;
+}
+
+.samvoice-effect-preset-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.samvoice-effect-preset-save-row {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+
+.samvoice-effect-utility-row {
+    grid-template-columns: auto auto auto auto;
+    justify-content: start;
+}
+
+#sam-effect-preset-select,
+#sam-effect-preset-name {
+    width: 100%;
+    height: var(--sam-control-h);
+    padding: 0 9px;
+    font-size: var(--sam-font-size-md);
+}
+
+.samvoice-effect-board {
+    display: grid;
+    gap: var(--sam-gap-2);
+    margin-top: var(--sam-gap-3);
+}
+
+.samvoice-effect-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sam-gap-2);
+    align-items: start;
+}
+
+.samvoice-effect-card {
+    position: relative;
+    display: grid;
+    gap: var(--sam-gap-1);
+    min-width: 0;
+    padding: var(--sam-gap-1);
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-md);
+    background: var(--sam-field);
+    opacity: 0.78;
+    box-shadow: var(--sam-shadow-inset);
+    transition: background 120ms ease, opacity 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.samvoice-effect-card.is-hidden {
+    display: none;
+}
+
+.samvoice-effect-card.active {
+    opacity: 1;
+    border-color: var(--sam-accent-line);
+    background:
+        linear-gradient(180deg, rgba(111, 161, 255, 0.13), rgba(111, 161, 255, 0.05)),
+        var(--sam-field);
+}
+
+.samvoice-effect-card.is-dragging {
+    opacity: 0.45;
+}
+
+.samvoice-effect-card.drag-before,
+.samvoice-effect-card.drag-after {
+    border-color: var(--sam-accent-line);
+}
+
+.samvoice-effect-card.drag-before::before,
+.samvoice-effect-card.drag-after::after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--sam-accent);
+    box-shadow: 0 0 8px rgba(111, 161, 255, 0.55);
+    pointer-events: none;
+}
+
+.samvoice-effect-card.drag-before::before {
+    top: -5px;
+}
+
+.samvoice-effect-card.drag-after::after {
+    bottom: -5px;
+}
+
+.sam-effect-card-head {
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr) 24px;
+    gap: var(--sam-gap-1);
+    align-items: center;
+    min-width: 0;
+}
+
+.sam-effect-drag-handle,
+.sam-effect-hide {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 26px;
+    min-width: 24px;
+    padding: 0;
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-sm);
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-xs);
+}
+
+.sam-effect-drag-handle {
+    cursor: grab;
+}
+
+.sam-effect-drag-handle:active {
+    cursor: grabbing;
+}
+
+.sam-effect-hide:hover,
+.sam-effect-drag-handle:hover {
+    color: var(--sam-text);
+    border-color: var(--sam-accent-line);
+    background: var(--sam-accent-soft);
+}
+
+.sam-effect-toggle {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    gap: var(--sam-gap-1);
+    align-items: center;
+    min-height: 26px;
+    min-width: 0;
+    padding: 0 6px;
+    justify-content: flex-start;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-sm);
+    color: var(--sam-text-soft);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 780;
+}
+
+.samvoice-effect-card.active .sam-effect-toggle {
+    color: var(--sam-text);
+    border-color: var(--sam-accent-line);
+    background: var(--sam-accent-soft);
+}
+
+.sam-effect-toggle i {
+    width: 18px;
+    text-align: center;
+}
+
+.sam-effect-toggle span {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.sam-effect-toggle small {
+    color: var(--sam-text-muted);
+    font-size: 9px;
+    font-weight: 680;
+    white-space: nowrap;
+}
+
+.sam-effect-param-stack {
+    display: grid;
+    gap: 2px;
+}
+
+.sam-effect-param-row {
+    display: grid;
+    grid-template-columns: 56px minmax(48px, 1fr) 48px;
+    gap: var(--sam-gap-1);
+    align-items: center;
+    min-width: 0;
+}
+
+.sam-effect-param-label {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--sam-text-soft);
+    font-size: var(--sam-font-size-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sam-effect-param-range {
+    width: 100%;
+    min-width: 0;
+}
+
+.sam-effect-param-value-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2px;
+    align-items: center;
+    min-width: 0;
+}
+
+.sam-effect-param-number {
+    width: 100%;
+    height: 20px;
+    min-width: 0;
+    padding: 0 2px;
+    text-align: center;
+    font-size: var(--sam-font-size-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.sam-effect-param-value-wrap small {
+    min-width: 11px;
+    color: var(--sam-text-faint);
+    font-size: 8px;
+    line-height: 1;
+}
+
+.samvoice-hidden-effects {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--sam-gap-2);
+    align-items: center;
+    padding: var(--sam-gap-1) var(--sam-gap-2);
+    border: 1px dashed var(--sam-line);
+    border-radius: var(--sam-radius-md);
+    background: rgba(255, 255, 255, 0.018);
+}
+
+.samvoice-hidden-effects[hidden] {
+    display: none;
+}
+
+.samvoice-hidden-effects > span {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-xs);
+    font-weight: 760;
+    white-space: nowrap;
+}
+
+.samvoice-hidden-effect-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sam-gap-1);
+    min-width: 0;
+}
+
+.samvoice-hidden-effect-chip {
+    display: inline-grid;
+    grid-template-columns: 14px auto;
+    gap: 4px;
+    align-items: center;
+    min-height: 23px;
+    padding: 0 7px;
+    border: 1px solid var(--sam-line);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--sam-text-soft);
+    font-size: var(--sam-font-size-xs);
+}
+
+.samvoice-hidden-effect-chip:hover {
+    color: var(--sam-text);
+    border-color: var(--sam-accent-line);
+    background: var(--sam-accent-soft);
+}
+
+.samvoice-hidden-effect-chip i {
+    width: 14px;
+    text-align: center;
+}

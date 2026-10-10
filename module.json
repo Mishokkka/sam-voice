@@ -1,0 +1,40 @@
+{
+  "id": "sam-voice",
+  "title": "SAM Voice",
+  "version": "1.4.0",
+  "socket": true,
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13.351",
+    "maximum": "13"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "socketlib",
+        "type": "module"
+      }
+    ]
+  },
+  "styles": [
+    "styles/samvoice.tokens.css",
+    "styles/samvoice.window.css",
+    "styles/samvoice.controls.css",
+    "styles/samvoice.layout.css",
+    "styles/samvoice.panels.css",
+    "styles/samvoice.engines.css",
+    "styles/samvoice.effects.css",
+    "styles/samvoice.speaker.css",
+    "styles/samvoice.session.css",
+    "styles/samvoice.responsive.css"
+  ],
+  "esmodules": [
+    "dist/samvoice.js"
+  ],
+  "authors": [
+    {
+      "name": "Хозяин"
+    }
+  ],
+  "description": "GM-controlled real-time text-to-speech with SAM, Piper, synchronized client playback, voice profiles, and WebAudio effects."
+}

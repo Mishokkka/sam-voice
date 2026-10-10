@@ -1,0 +1,47 @@
+/* SAM Voice design tokens. Owner: global visual contract. */
+.samvoice-window {
+    --sam-bg-0: #0b0e13;
+    --sam-bg-1: #10141b;
+    --sam-bg-2: #151a23;
+    --sam-bg-3: #1b212c;
+    --sam-bg-4: #222a37;
+    --sam-field: #0e131a;
+    --sam-field-hover: #151b24;
+    --sam-line: rgba(239, 232, 219, 0.11);
+    --sam-line-2: rgba(239, 232, 219, 0.2);
+    --sam-line-3: rgba(239, 232, 219, 0.31);
+    --sam-text: #f2eadc;
+    --sam-text-soft: rgba(242, 234, 220, 0.72);
+    --sam-text-muted: rgba(242, 234, 220, 0.52);
+    --sam-text-faint: rgba(242, 234, 220, 0.34);
+    --sam-accent: #6fa1ff;
+    --sam-accent-2: #3f7bea;
+    --sam-accent-soft: rgba(111, 161, 255, 0.18);
+    --sam-accent-line: rgba(111, 161, 255, 0.46);
+    --sam-danger: #ff7474;
+    --sam-danger-soft: rgba(255, 116, 116, 0.13);
+    --sam-warn: #e7ba63;
+    --sam-warn-soft: rgba(231, 186, 99, 0.14);
+    --sam-good: #63d787;
+    --sam-good-soft: rgba(99, 215, 135, 0.14);
+    --sam-gold: #d5b46b;
+    --sam-radius-xs: 5px;
+    --sam-radius-sm: 7px;
+    --sam-radius-md: 10px;
+    --sam-radius-lg: 14px;
+    --sam-gap-1: 4px;
+    --sam-gap-2: 6px;
+    --sam-gap-3: 8px;
+    --sam-gap-4: 10px;
+    --sam-gap-5: 12px;
+    --sam-gap-6: 16px;
+    --sam-control-h: 30px;
+    --sam-control-h-lg: 38px;
+    --sam-font-size-xs: 10px;
+    --sam-font-size-sm: 11px;
+    --sam-font-size-md: 12px;
+    --sam-font-size-lg: 13px;
+    --sam-font-size-xl: 15px;
+    --sam-shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --sam-shadow-panel: 0 12px 34px rgba(0, 0, 0, 0.28);
+}

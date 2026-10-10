@@ -1,0 +1,223 @@
+/* Main composition layout. Owner: command deck geometry. */
+.samvoice-topbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 184px;
+    gap: var(--sam-gap-4);
+    align-items: stretch;
+    min-height: 0;
+}
+
+.samvoice-profile-slot,
+.samvoice-mode-strip,
+.samvoice-composer,
+.samvoice-inspector,
+.samvoice-lower-grid > .samvoice-details {
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-lg);
+    background: rgba(18, 23, 31, 0.88);
+    box-shadow: var(--sam-shadow-inset);
+}
+
+.samvoice-profile-slot {
+    min-width: 0;
+    padding: var(--sam-gap-3);
+}
+
+.samvoice-mode-strip {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: minmax(32px, auto);
+    align-content: start;
+    gap: var(--sam-gap-2);
+    min-width: 0;
+    padding: var(--sam-gap-3);
+}
+
+.samvoice-workbench {
+    flex: 1 0 auto;
+    display: grid;
+    grid-template-columns: minmax(390px, 1fr) 270px;
+    gap: var(--sam-gap-4);
+    align-items: stretch;
+    min-height: 335px;
+}
+
+.samvoice-composer {
+    display: grid;
+    grid-template-rows: auto minmax(154px, 1fr) auto auto;
+    gap: var(--sam-gap-3);
+    min-width: 0;
+    min-height: 0;
+    padding: var(--sam-gap-4);
+}
+
+.samvoice-composer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sam-gap-4);
+}
+
+.samvoice-composer-head > div:first-child {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.samvoice-composer-head strong {
+    font-size: 14px;
+    font-weight: 840;
+}
+
+.samvoice-composer-head span {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+}
+
+.samvoice-composer-meter {
+    min-width: 42px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--sam-line);
+    border-radius: 999px;
+    background: var(--sam-bg-1);
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 820;
+}
+
+.samvoice-textarea {
+    width: 100%;
+    min-height: 154px;
+    height: 100%;
+    resize: none;
+    padding: 12px 13px;
+    border-radius: var(--sam-radius-md);
+    background: linear-gradient(180deg, #0d1219, #0a0e14) !important;
+    font-size: 15px;
+    line-height: 1.38;
+}
+
+.samvoice-preview-row {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sam-gap-2);
+}
+
+.samvoice-preview-label {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 820;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.samvoice-preview {
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 0 10px;
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-sm);
+    background: #0b1017;
+    color: var(--sam-text-muted);
+    font-family: var(--font-monospace, monospace);
+    font-size: var(--sam-font-size-md);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.samvoice-action-dock {
+    display: grid;
+    grid-template-columns: 96px 128px minmax(156px, 1fr);
+    gap: var(--sam-gap-3);
+    align-items: stretch;
+}
+
+.samvoice-action-play {
+    width: 100%;
+}
+
+.samvoice-inspector {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sam-gap-3);
+    min-width: 0;
+    min-height: 0;
+    padding: var(--sam-gap-3);
+}
+
+.samvoice-engine-drawer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sam-gap-3);
+    min-width: 0;
+}
+
+.samvoice-lower-grid {
+    display: grid;
+    grid-template-columns: minmax(390px, 1fr) 270px;
+    gap: var(--sam-gap-4);
+    align-items: start;
+}
+/* v6.2 layout corrections. */
+.samvoice-topbar {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, 1fr) 178px;
+    align-items: start;
+    position: relative;
+    z-index: 1;
+}
+
+.samvoice-profile-slot,
+.samvoice-mode-strip {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.samvoice-workbench {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(390px, 1fr) 280px;
+    min-height: 0;
+    align-items: start;
+}
+
+.samvoice-composer {
+    min-height: 0;
+    grid-template-rows: auto minmax(170px, 1fr) auto auto;
+}
+
+.samvoice-action-dock {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--sam-gap-2);
+}
+
+.samvoice-action-dock .samvoice-button {
+    width: 100%;
+    min-height: 34px;
+    height: 34px;
+    padding: 0 8px;
+    font-size: var(--sam-font-size-md);
+    font-weight: 780;
+}
+
+.samvoice-action-dock .samvoice-button-primary {
+    min-height: 34px;
+    height: 34px;
+    font-size: var(--sam-font-size-md);
+    letter-spacing: 0;
+}
+
+.samvoice-lower-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sam-gap-3);
+    align-items: stretch;
+}
+
+.samvoice-lower-grid > .samvoice-details {
+    width: 100%;
+}

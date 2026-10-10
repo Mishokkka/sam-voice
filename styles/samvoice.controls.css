@@ -1,0 +1,180 @@
+/* Shared controls. Owner: form elements, buttons, chips. */
+.samvoice-window button,
+.samvoice-window select,
+.samvoice-window input,
+.samvoice-window textarea {
+    min-width: 0;
+    font-family: inherit;
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-sm);
+    background: var(--sam-field);
+    color: var(--sam-text);
+    box-shadow: var(--sam-shadow-inset);
+}
+
+.samvoice-window button:hover,
+.samvoice-window select:hover,
+.samvoice-window input:hover,
+.samvoice-window textarea:hover {
+    border-color: var(--sam-line-2);
+    background: var(--sam-field-hover);
+}
+
+.samvoice-window button:focus,
+.samvoice-window select:focus,
+.samvoice-window input:focus,
+.samvoice-window textarea:focus {
+    outline: none;
+    border-color: var(--sam-accent-line);
+    box-shadow: 0 0 0 2px var(--sam-accent-soft);
+}
+
+.samvoice-window button:disabled,
+.samvoice-window select:disabled,
+.samvoice-window input:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.samvoice-window option,
+.samvoice-window optgroup {
+    background: var(--sam-bg-1);
+    color: var(--sam-text);
+}
+
+.samvoice-window textarea,
+.samvoice-window input,
+.samvoice-window select,
+.samvoice-window .samvoice-textarea,
+.samvoice-window #sam-text,
+.samvoice-window #sam-translit-preview {
+    color: var(--sam-text) !important;
+    -webkit-text-fill-color: var(--sam-text) !important;
+    caret-color: var(--sam-text) !important;
+}
+
+.samvoice-window textarea::placeholder,
+.samvoice-window input::placeholder {
+    color: var(--sam-text-faint) !important;
+    -webkit-text-fill-color: var(--sam-text-faint) !important;
+}
+
+.samvoice-button,
+.samvoice-mini-button,
+.samvoice-mini-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sam-gap-2);
+    cursor: pointer;
+    font-weight: 740;
+    line-height: 1;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.samvoice-button {
+    min-height: var(--sam-control-h-lg);
+    padding: 0 12px;
+    font-size: var(--sam-font-size-lg);
+}
+
+.samvoice-mini-button {
+    min-height: var(--sam-control-h);
+    padding: 0 9px;
+    font-size: var(--sam-font-size-md);
+}
+
+.samvoice-mini-icon-button {
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 12px;
+}
+
+.samvoice-button-primary {
+    min-height: 46px;
+    color: white;
+    background: linear-gradient(180deg, #4b8cff, var(--sam-accent-2));
+    border-color: rgba(142, 185, 255, 0.58);
+    font-size: var(--sam-font-size-xl);
+    font-weight: 850;
+    letter-spacing: 0.01em;
+}
+
+.samvoice-button-primary:hover {
+    background: linear-gradient(180deg, #62a0ff, #477feb);
+    border-color: rgba(178, 208, 255, 0.75);
+}
+
+.samvoice-button-secondary,
+.samvoice-button-ghost {
+    background: var(--sam-bg-2);
+}
+
+.samvoice-button-danger {
+    color: var(--sam-danger);
+    background: var(--sam-danger-soft);
+    border-color: rgba(255, 116, 116, 0.32);
+}
+
+.samvoice-button-danger-soft:hover {
+    color: var(--sam-danger);
+    background: var(--sam-danger-soft);
+    border-color: rgba(255, 116, 116, 0.28);
+}
+
+.samvoice-field-chip {
+    display: grid;
+    grid-template-columns: auto minmax(100px, 1fr);
+    align-items: center;
+    gap: var(--sam-gap-2);
+    min-width: 0;
+    min-height: 34px;
+    padding: 3px 4px 3px 9px;
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-md);
+    background: rgba(12, 16, 22, 0.78);
+}
+
+.samvoice-field-chip > span {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 800;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.samvoice-field-chip select {
+    width: 100%;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: var(--sam-radius-xs);
+    font-size: var(--sam-font-size-md);
+    font-weight: 780;
+}
+
+.samvoice-status-ok { color: var(--sam-good); }
+.samvoice-status-error { color: var(--sam-danger); }
+.samvoice-count-warn { color: var(--sam-warn) !important; }
+.samvoice-count-danger { color: var(--sam-danger) !important; }
+
+/* Header mode strip compaction. Owner: field-chip variant used by the topbar. */
+.samvoice-mode-strip .samvoice-field-chip {
+    grid-template-columns: 52px minmax(0, 1fr);
+    min-height: 32px;
+    padding: 3px 4px 3px 7px;
+}
+
+.samvoice-mode-strip .samvoice-field-chip > span {
+    overflow: hidden;
+    font-size: var(--sam-font-size-xs);
+    text-overflow: ellipsis;
+}
+
+.samvoice-mode-strip .samvoice-field-chip select {
+    height: 24px;
+    padding: 0 6px;
+    font-size: var(--sam-font-size-sm);
+}

@@ -1,0 +1,64 @@
+/* Responsive fallbacks. Owner: narrow ApplicationV2 windows. */
+@media (max-width: 760px) {
+    .samvoice-window {
+        min-width: 0;
+    }
+
+    .samvoice-topbar,
+    .samvoice-workbench,
+    .samvoice-lower-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .samvoice-mode-strip {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .samvoice-action-dock {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .samvoice-action-play {
+        grid-column: 1 / -1;
+    }
+
+    .samvoice-speaker-thumb-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .samvoice-session-bar {
+        grid-template-columns: 1fr;
+        max-height: 43px;
+        min-height: 43px;
+        flex-basis: 43px;
+    }
+}
+
+@media (max-width: 560px) {
+    .samvoice-profile-panel,
+    .samvoice-profile-manage-row,
+    .samvoice-preview-row {
+        grid-template-columns: 1fr;
+    }
+
+    .samvoice-profile-buttons,
+    .samvoice-session-chips {
+        flex-wrap: wrap;
+    }
+
+    .samvoice-presets {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .samvoice-effect-card-grid,
+    .samvoice-effect-preset-save-row,
+    .samvoice-effect-utility-row {
+        grid-template-columns: 1fr;
+    }
+
+    .samvoice-engine-settings-grid,
+    .samvoice-piper-settings,
+    .samvoice-piper-voice-row {
+        grid-template-columns: 1fr;
+    }
+}
