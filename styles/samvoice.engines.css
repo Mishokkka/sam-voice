@@ -1,0 +1,78 @@
+/* Engine-specific controls. Owner: SAM/Piper drawers. */
+.samvoice-engine-settings-grid,
+.samvoice-piper-settings,
+.samvoice-piper-voice-row {
+    display: grid;
+    grid-template-columns: 58px minmax(0, 1fr) auto;
+    gap: var(--sam-gap-2);
+    align-items: center;
+    margin-top: var(--sam-gap-2);
+}
+
+.samvoice-engine-settings-grid label,
+.samvoice-piper-settings label,
+.samvoice-piper-voice-row label {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 800;
+}
+
+#sam-piper-url,
+#sam-piper-voice {
+    width: 100%;
+    height: var(--sam-control-h);
+    padding: 0 9px;
+    font-size: var(--sam-font-size-md);
+}
+
+.samvoice-piper-status {
+    min-height: 20px;
+    margin-top: var(--sam-gap-2);
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-md);
+    font-weight: 720;
+}
+
+.samvoice-presets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sam-gap-2);
+    margin-top: var(--sam-gap-2);
+}
+
+.sam-preset {
+    min-height: 30px;
+    padding: 0 9px;
+    overflow: hidden;
+    font-size: var(--sam-font-size-md);
+    font-weight: 740;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.samvoice-slider-row {
+    display: grid;
+    gap: 4px;
+    margin-top: var(--sam-gap-2);
+}
+
+.samvoice-slider-row label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-md);
+    font-weight: 720;
+}
+
+.samvoice-slider-row label span:last-child {
+    color: var(--sam-text-soft);
+    font-variant-numeric: tabular-nums;
+}
+
+.samvoice-slider-row input[type="range"] {
+    width: 100%;
+    height: 20px;
+    padding: 0;
+    background: transparent;
+    border: none;
+}

@@ -1,0 +1,121 @@
+/* Session diagnostics. Owner: always-visible thin readiness footer and client status. */
+.samvoice-session-bar {
+    flex: 0 0 25px;
+    min-height: 25px;
+    max-height: 25px;
+    display: grid;
+    grid-template-columns: minmax(360px, auto) minmax(0, 1fr);
+    gap: var(--sam-gap-2);
+    align-items: center;
+    padding: 2px 8px;
+    border-top: 1px solid var(--sam-line);
+    background: rgba(8, 11, 16, 0.98);
+    overflow: hidden;
+    font-size: var(--sam-font-size-xs);
+}
+
+.samvoice-session-chips {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.samvoice-session-actions {
+    display: none;
+}
+
+.samvoice-session-chip {
+    height: 19px;
+    max-width: 118px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    border: 1px solid var(--sam-line);
+    border-radius: 999px;
+    background: var(--sam-bg-2);
+    color: var(--sam-text-soft);
+    font-size: var(--sam-font-size-xs);
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+.samvoice-session-chip-wide {
+    max-width: 145px;
+}
+
+.samvoice-session-chip i {
+    width: 10px;
+    flex: 0 0 auto;
+    font-size: 9px;
+    text-align: center;
+}
+
+.samvoice-session-pill {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.samvoice-session-dot {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: var(--sam-text-muted);
+}
+
+.samvoice-session-ok { color: var(--sam-good); }
+.samvoice-session-warn { color: var(--sam-warn); }
+.samvoice-session-error { color: var(--sam-danger); }
+
+.samvoice-session-ok .samvoice-session-dot { background: var(--sam-good); }
+.samvoice-session-warn .samvoice-session-dot { background: var(--sam-warn); }
+.samvoice-session-error .samvoice-session-dot { background: var(--sam-danger); }
+
+.samvoice-session-clients {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    height: 19px;
+    overflow: hidden;
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-xs);
+    line-height: 18px;
+    white-space: nowrap;
+}
+
+.samvoice-client-status {
+    height: 19px;
+    max-width: 160px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    border: 1px solid var(--sam-line);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.18);
+    line-height: 18px;
+}
+
+.samvoice-client-status strong,
+.samvoice-client-status small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.samvoice-client-status strong {
+    color: inherit;
+    font-size: var(--sam-font-size-xs);
+    font-weight: 790;
+}
+
+.samvoice-client-status small {
+    font-size: 9px;
+    opacity: 0.72;
+}

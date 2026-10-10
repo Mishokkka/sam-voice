@@ -1,0 +1,185 @@
+/* Window shell and Foundry integration. Owner: ApplicationV2 chrome. */
+#samvoice-open {
+    flex: 0 0 28px;
+    width: 28px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
+    margin: 0 2px 0 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+#samvoice-open i {
+    margin: 0;
+    pointer-events: none;
+}
+
+.samvoice-window {
+    min-width: 720px;
+    min-height: 420px;
+    color: var(--sam-text);
+}
+
+.samvoice-window .window-header {
+    height: 30px;
+    min-height: 30px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 6px;
+    background: linear-gradient(180deg, #111722, #090d13);
+    color: var(--sam-text);
+    border-bottom: 1px solid var(--sam-line);
+}
+
+.samvoice-window .window-title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--sam-text);
+    font-size: 12px;
+    font-weight: 760;
+    letter-spacing: 0.01em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.samvoice-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    margin-left: auto;
+    margin-right: 3px;
+}
+
+.samvoice-header-icon-button {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    min-height: 22px;
+    padding: 0;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--sam-text-soft);
+    font-size: 10px;
+    line-height: 1;
+    box-shadow: none;
+}
+
+.samvoice-header-icon-button:hover {
+    color: var(--sam-text);
+    background: rgba(255, 255, 255, 0.09);
+}
+
+.samvoice-header-icon-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.samvoice-window .samvoice-close-button,
+.samvoice-window .window-header .close,
+.samvoice-window .window-header [data-action="close"] {
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
+    min-height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    color: var(--sam-text-soft);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.samvoice-window .samvoice-close-button:hover,
+.samvoice-window .window-header .close:hover,
+.samvoice-window .window-header [data-action="close"]:hover {
+    color: #fff;
+    background: rgba(255, 116, 116, 0.18);
+}
+
+.samvoice-window .samvoice-close-glyph {
+    font-size: 17px;
+    line-height: 1;
+}
+
+.samvoice-window .window-content {
+    height: calc(100% - 30px) !important;
+    min-height: 0 !important;
+    display: flex;
+    padding: 0;
+    overflow: hidden;
+    background: var(--sam-bg-0);
+    color: var(--sam-text);
+}
+
+.samvoice-window .dialog-buttons {
+    display: none;
+}
+
+.samvoice-app {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, rgba(111, 161, 255, 0.08), transparent 34%),
+        linear-gradient(180deg, var(--sam-bg-1), var(--sam-bg-0));
+}
+
+.samvoice-main-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sam-gap-4);
+    padding: var(--sam-gap-4);
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--sam-line-3) transparent;
+}
+
+.samvoice-app *,
+.samvoice-app *::before,
+.samvoice-app *::after {
+    box-sizing: border-box;
+}
+
+.samvoice-app i,
+.samvoice-window .window-header i {
+    pointer-events: none;
+}
+/* v6.2 close button normalization. */
+.samvoice-window .samvoice-close-button,
+.samvoice-window .window-header .samvoice-close-button,
+.samvoice-window .window-header [data-action="close"].samvoice-close-button {
+    overflow: hidden;
+    font-size: 0;
+    text-decoration: none;
+}
+
+.samvoice-window .samvoice-close-button > :not(.samvoice-close-glyph) {
+    display: none !important;
+}
+
+.samvoice-window .samvoice-close-glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    color: inherit;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1;
+}

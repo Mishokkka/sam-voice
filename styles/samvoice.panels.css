@@ -1,0 +1,187 @@
+/* Reusable panels and profile/header module. Owner: shared cards. */
+.samvoice-profile-panel {
+    display: grid;
+    grid-template-columns: minmax(160px, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: var(--sam-gap-2);
+    align-items: center;
+    min-width: 0;
+}
+
+.samvoice-profile-select-wrap {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sam-gap-2);
+    min-width: 0;
+}
+
+.samvoice-profile-select-wrap > span {
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    font-weight: 820;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.samvoice-profile-select {
+    width: 100%;
+    height: var(--sam-control-h);
+    padding: 0 9px;
+    font-size: var(--sam-font-size-md);
+    font-weight: 760;
+}
+
+.samvoice-profile-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    gap: var(--sam-gap-1);
+}
+
+.samvoice-profile-manage-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) auto auto;
+    gap: var(--sam-gap-2);
+}
+
+#sam-voice-profile-name {
+    height: var(--sam-control-h);
+    padding: 0 9px;
+    font-size: var(--sam-font-size-md);
+}
+
+.samvoice-details {
+    min-width: 0;
+    border: 1px solid var(--sam-line);
+    border-radius: var(--sam-radius-lg);
+    background: rgba(19, 24, 32, 0.86);
+    overflow: hidden;
+    box-shadow: var(--sam-shadow-inset);
+}
+
+.samvoice-details[open] {
+    background: rgba(21, 27, 37, 0.94);
+}
+
+.samvoice-details summary {
+    position: relative;
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+    grid-template-areas:
+        "icon title arrow"
+        "icon subtitle arrow";
+    column-gap: var(--sam-gap-3);
+    align-items: center;
+    min-height: 42px;
+    padding: 8px 10px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.samvoice-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.samvoice-details summary::after {
+    grid-area: arrow;
+    content: "\f078";
+    justify-self: end;
+    color: var(--sam-text-muted);
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 10px;
+    transition: transform 140ms ease;
+}
+
+.samvoice-details[open] summary::after {
+    transform: rotate(180deg);
+}
+
+.samvoice-details summary > i {
+    grid-area: icon;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--sam-radius-sm);
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--sam-text-soft);
+    font-size: 13px;
+}
+
+.samvoice-details summary > span {
+    grid-area: title;
+    overflow: hidden;
+    color: var(--sam-text);
+    font-size: var(--sam-font-size-lg);
+    font-weight: 840;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.samvoice-details summary > small {
+    grid-area: subtitle;
+    overflow: hidden;
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-sm);
+    line-height: 1.2;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.samvoice-details > :not(summary) {
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.samvoice-details > :last-child {
+    margin-bottom: 10px;
+}
+
+.samvoice-history {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sam-gap-1);
+    margin-top: var(--sam-gap-2);
+}
+
+.sam-history-item {
+    width: 100%;
+    height: 27px;
+    padding: 0 9px;
+    justify-content: flex-start;
+    overflow: hidden;
+    text-align: left;
+    color: var(--sam-text-soft);
+    font-size: var(--sam-font-size-md);
+    line-height: 25px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.samvoice-history-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--sam-gap-2);
+}
+
+.samvoice-empty-history {
+    padding: 5px 2px;
+    color: var(--sam-text-muted);
+    font-size: var(--sam-font-size-md);
+}
+
+/* v6.2 full-width lower panels. */
+.samvoice-history-details .samvoice-history {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 118px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.samvoice-history-details .sam-history-item {
+    min-width: 0;
+}
