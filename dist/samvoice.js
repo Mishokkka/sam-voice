@@ -5605,6 +5605,85 @@ async function samGenerateSilero({ text, sileroServerUrl, sileroVoice, effects, 
 	};
 }
 //#endregion
+//#region scripts/ui/qwenPanel.js
+var samQwenVoices = ["aiden", "dylan", "eric", "ono_anna", "ryan", "serena", "sohee", "uncle_fu", "vivian"];
+async function samQwenFetchInfo(url, { signal } = {}) {
+    let base = ae(ua(url, "http://127.0.0.1:8081"), se());
+    let controller = ma({ signal, timeoutMs: 15000 });
+    try {
+        let response = await fetch(base + "/v1/models", { signal: controller.signal });
+        if (!response.ok) throw Error(`Qwen server check failed: ${response.status} ${await pa(response)}`);
+        let json = await response.json();
+        let loaded = Array.isArray(json?.data) ? json.data : [];
+        let active = loaded.find((item) =>
+            /qwen3[-_ ]?tts/i.test(String(item?.id || "")) ||
+            /qwen3[-_ ]?tts/i.test(String(item?.speech?.name || ""))
+        );
+        if (!active) throw Error("No Qwen3-TTS synthesis model is loaded on this server.");
+        return { ok: true, model: String(active.id || ""),
+            voices: Object.fromEntries(samQwenVoices.map((voice) => [voice, { name: voice }])) };
+    } finally {
+        controller.cleanup();
+    }
+}
+async function samQwenGenerate({ text, qwenServerUrl, qwenVoice, qwenInstructions, effects, signal }) {
+    let server = ae(ua(qwenServerUrl, "http://127.0.0.1:8081"), se());
+    let voice = samQwenVoices.includes(qwenVoice) ? qwenVoice : "ryan";
+    let instructions = String(qwenInstructions || "").trim().slice(0, 600);
+    if (instructions) {
+        let info = await samQwenFetchInfo(server, { signal });
+        if (!/1[._-]?7[bB]/.test(info.model)) {
+            throw Error("Voice Instructions require Qwen3-TTS 1.7B. Clear the instruction or start speech.cpp with 1.7B.");
+        }
+    }
+    let body = { input: text, voice, language: "ru", response_format: "wav" };
+    if (instructions) body.instructions = instructions;
+    let controller = ma({ signal, timeoutMs: 120000 });
+    try {
+        let response = await fetch(server + "/v1/audio/speech", {
+            method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify(body), signal: controller.signal
+        });
+        if (!response.ok) throw Error(`Qwen speech failed: ${response.status} ${await pa(response)}`);
+        return { engine: "qwen", text, voice,
+            ...await fa(await response.blob(), response.headers.get("content-type")), effects };
+    } finally {
+        controller.cleanup();
+    }
+}
+var samQwenPanel = Ea({
+    id: "qwen", title: "Qwen3-TTS", iconClass: "fas fa-microphone-alt",
+    summaryLabel: "Qwen3-TTS", summaryHint: "Нейронная озвучка с интонационными инструкциями (1.7B).",
+    defaultServerUrl: "http://127.0.0.1:8081", defaultVoice: "ryan", defaultVoiceLabel: null,
+    urlLabel: "Qwen Server URL", voiceLabel: "Voice",
+    checkTitle: "Check Qwen3-TTS", checkingText: "Checking Qwen3-TTS...",
+    okText: (list, response) => `Qwen онлайн: ${response.model} (${list.length} голосов)`,
+    errorText: (error) => error?.message || "Qwen offline. Run speech.cpp serve.",
+    checkServer: (url) => samQwenFetchInfo(url), extractVoices: (response) => Object.keys(response.voices || {}),
+    renderExtraFieldsHtml: (settings) => `
+        <div class="samvoice-engine-settings-grid samvoice-qwen-instructions-row">
+            <label for="sam-qwen-instructions">Voice Instructions</label>
+            <textarea id="sam-qwen-instructions" rows="3" maxlength="600"
+                placeholder="Speak softly, with a tired and raspy voice."
+                title="Английская инструкция о характере речи. Поддерживается моделью 1.7B.">${G(settings.qwenInstructions || "")}</textarea>
+            <small>Только 1.7B. Сервер держит одну TTS-модель одновременно.</small>
+        </div>
+    `,
+    readExtraFieldsFromDialog: (dialog) => ({
+        qwenInstructions: String(dialog.find("#sam-qwen-instructions").val() || "").trim().slice(0, 600)
+    }),
+    applyExtraFieldsToDialog: (dialog, settings) => {
+        dialog.find("#sam-qwen-instructions").val(String(settings.qwenInstructions || "").slice(0, 600));
+    },
+    getServerUrlFromSettings: (settings) => settings.qwenServerUrl,
+    getVoiceFromSettings: (settings) => settings.qwenVoice
+});
+function samRenderQwen(settings) { return samQwenPanel.render(settings); }
+function samBindQwen(dialog, callbacks) { samQwenPanel.bind(dialog, callbacks); }
+function samCheckQwen(dialog, callbacks) { return samQwenPanel.checkFromDialog(dialog, callbacks); }
+function samReadQwen(dialog) { return samQwenPanel.readSettingsFromDialog(dialog); }
+function samApplyQwen(dialog, settings) { return samQwenPanel.applySettingsToDialog(dialog, settings); }
+//#endregion
 //#region scripts/ui/sessionPanel.js
 var za = 0;
 function Ba() {
@@ -5687,20 +5766,25 @@ async function Ja(e, t) {
 	await Ya(e, t);
 }
 async function Ya(e, t) {
-	let engine = e.find("#sam-engine").val(), silero = engine === "silero", id = silero ? "silero" : "piper";
-	let url = e.find(`#sam-${id}-url`).val()?.trim() || (silero ? "http://127.0.0.1:5051" : "http://127.0.0.1:5050");
-	let voice = Ra(e.find(`#sam-${id}-voice`).val()), label = silero ? "Silero" : "Piper";
-	X(e, "#sam-session-tts", `${label}...`, "warn"), X(e, "#sam-session-voice", voice || "Default", "warn");
-	try {
-		let response = await Ta(url);
-		if (t !== za) return;
-		X(e, "#sam-session-tts", `${label} онлайн (${Object.keys(response.voices || {}).length})`, "ok");
-		X(e, "#sam-session-voice", voice || "Default", voice ? "ok" : "warn");
-	} catch {
-		if (t !== za) return;
-		X(e, "#sam-session-tts", `${label} offline`, "error");
-		X(e, "#sam-session-voice", voice || "Default", "warn");
-	}
+    let engine = e.find("#sam-engine").val(), qwen = engine === "qwen";
+    let id = qwen ? "qwen" : engine === "silero" ? "silero" : "piper";
+    let defaults = { qwen: "http://127.0.0.1:8081", silero: "http://127.0.0.1:5051", piper: "http://127.0.0.1:5050" };
+    let url = e.find(`#sam-${id}-url`).val()?.trim() || defaults[id];
+    let voice = Ra(e.find(`#sam-${id}-voice`).val());
+    let label = qwen ? "Qwen" : id === "silero" ? "Silero" : "Piper";
+    X(e, "#sam-session-tts", `${label}...`, "warn");
+    X(e, "#sam-session-voice", voice || "Default", "warn");
+    try {
+        let result = qwen ? await samQwenFetchInfo(url) : await Ta(url);
+        if (t !== za) return;
+        X(e, "#sam-session-tts",
+            qwen ? `Qwen онлайн: ${result.model}` : `${label} онлайн (${Object.keys(result.voices || {}).length})`, "ok");
+        X(e, "#sam-session-voice", voice || "Default", voice ? "ok" : "warn");
+    } catch {
+        if (t !== za) return;
+        X(e, "#sam-session-tts", `${label} offline`, "error");
+        X(e, "#sam-session-voice", voice || "Default", "warn");
+    }
 }
 function Xa(e, t) {
 	let n = e.find("#sam-session-test-everyone");
@@ -6057,6 +6141,7 @@ function Do() {
                             <option value="sam" ${e.engine === "sam" ? "selected" : ""}>SAM</option>
                             <option value="piper" ${e.engine === "piper" ? "selected" : ""}>Piper</option>
                             <option value="silero" ${e.engine === "silero" ? "selected" : ""}>Silero</option>
+                            <option value="qwen" ${e.engine === "qwen" ? "selected" : ""}>Qwen3-TTS</option>
                         </select>
                     </label>
 
@@ -6118,6 +6203,7 @@ function Do() {
                     <div class="samvoice-engine-drawer">
                         ${Ma(e)}
                         ${samRenderSilero(e)}
+                        ${samRenderQwen(e)}
                         ${Qa(n)}
                     </div>
                 </aside>
@@ -6138,7 +6224,7 @@ function Oo(e) {
 	Va(t, No(t)), hi(t, {
 		getProfileData: () => ko(t),
 		applyProfile: (e) => Ao(t, e)
-	}), Ei(t), oo(t), Na(t, jo(t)), samBindSilero(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
+	}), Ei(t), oo(t), Na(t, jo(t)), samBindSilero(t, jo(t)), samBindQwen(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
 		vo(t), Bo(t);
 	}).on("keydown", function(e) {
 		if (e.key === "Enter") {
@@ -6149,7 +6235,7 @@ function Oo(e) {
 			(e.ctrlKey || e.metaKey) && (e.preventDefault(), t.find("#sam-play-everyone").first?.click?.());
 		}
 	}), t.find("#sam-engine").on("change", function() {
-		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), Y(t, No(t));
+		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), t.find("#sam-engine").val() === "qwen" && samCheckQwen(t, jo(t)), Y(t, No(t));
 	}), t.find("#sam-playback-mode").on("change", async function() {
 		await de(this.value);
 	}), t.find("#sam-stop-audio").off("click").on("click", async () => {
@@ -6184,7 +6270,7 @@ function Oo(e) {
 				Ho(t, !1);
 			}
 		}
-	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t));
+	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), t.find("#sam-engine").val() === "qwen" && samCheckQwen(t, jo(t));
 }
 function ko(e) {
 	let t = Ia(e);
@@ -6193,6 +6279,7 @@ function ko(e) {
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice,
 		...samReadSilero(e),
+		...samReadQwen(e),
 		...so(e),
 		samVoiceSettings: eo(e),
 		effects: q(e)
@@ -6202,7 +6289,7 @@ function Ao(e, t) {
 	e.find("#sam-engine").val(t.engine || "sam"), La(e, {
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice
-	}), samApplySilero(e, t), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), e.find("#sam-engine").val() === "silero" && samCheckSilero(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
+	}), samApplySilero(e, t), samApplyQwen(e, t), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), e.find("#sam-engine").val() === "silero" && samCheckSilero(e, jo(e)), e.find("#sam-engine").val() === "qwen" && samCheckQwen(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
 }
 function jo(e) {
 	return {
@@ -6229,7 +6316,7 @@ function No(e) {
 }
 async function Po(e) {
 	let t = e.find("#sam-engine").val(), n = Ia(e).piperVoice || "";
-	return await Io(e, t === "silero" || t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
+	return await Io(e, t === "silero" || t === "qwen" || t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
 		saveToHistory: !1,
 		notification: "Generating test voice..."
 	});
@@ -6239,32 +6326,37 @@ async function Fo(e, t = {}) {
 	return n.length ? await Io(e, n, t) : null;
 }
 async function Io(e, t, n = {}) {
-	let r = e.find("#sam-engine").val(), i = q(e), a = Ia(e), b = samReadSilero(e), o = so(e), s = co(o), c = zo(e), l = Ro(e);
-	if (await de(c), await ce({
-		engine: r, piperServerUrl: a.piperServerUrl, piperVoice: a.piperVoice,
-		sileroServerUrl: b.sileroServerUrl, sileroVoice: b.sileroVoice, ...o
-	}), await ze(i), n.saveToHistory && await Ze(t), r === "piper" || r === "silero") {
-		let isSilero = r === "silero";
-		let speechText = isSilero ? t : _o({ engine: r, text: t, piperVoice: a.piperVoice });
-		return await Lo({
-			notification: n.notification || `Generating ${isSilero ? "Silero" : "Piper"} voice...`,
-			cancelLog: `SAM Voice: ${isSilero ? "Silero" : "Piper"} generation cancelled.`,
-			errorFallback: `${isSilero ? "Silero" : "Piper"} generation failed. Check local TTS server.`,
-			originalText: t, playbackMode: c,
-			speakerPortraitPlaybackSettings: s, profileLink: l,
-			generateFn: (signal) => isSilero ? samGenerateSilero({
-				text: speechText, sileroServerUrl: b.sileroServerUrl,
-				sileroVoice: b.sileroVoice, effects: i, signal
-			}) : Pa({
-				text: speechText, piperServerUrl: a.piperServerUrl,
-				piperVoice: a.piperVoice, effects: i, signal
-			})
-		});
-	}
-	let u = eo(e);
-	return await Je(u), {
-		engine: "sam", text: et(t), effects: i, playbackMode: c, ...u, ...s, ...l
-	};
+    let engine = e.find("#sam-engine").val(), effects = q(e);
+    let piper = Ia(e), silero = samReadSilero(e), qwen = samReadQwen(e);
+    let portrait = so(e), portraitSettings = co(portrait), playbackMode = zo(e), profile = Ro(e);
+    await de(playbackMode);
+    await ce({
+        engine, piperServerUrl: piper.piperServerUrl, piperVoice: piper.piperVoice,
+        sileroServerUrl: silero.sileroServerUrl, sileroVoice: silero.sileroVoice,
+        qwenServerUrl: qwen.qwenServerUrl, qwenVoice: qwen.qwenVoice,
+        qwenInstructions: qwen.qwenInstructions, ...portrait
+    });
+    await ze(effects);
+    if (n.saveToHistory) await Ze(t);
+    if (engine === "piper" || engine === "silero" || engine === "qwen") {
+        let speechText = engine === "piper" ? _o({ engine, text: t, piperVoice: piper.piperVoice }) : t;
+        let label = engine === "qwen" ? "Qwen" : engine === "silero" ? "Silero" : "Piper";
+        return await Lo({
+            notification: n.notification || `Generating ${label} voice...`,
+            cancelLog: `SAM Voice: ${label} generation cancelled.`,
+            errorFallback: `${label} generation failed. Check local TTS server.`,
+            originalText: t, playbackMode, speakerPortraitPlaybackSettings: portraitSettings,
+            profileLink: profile,
+            generateFn: (signal) => engine === "qwen"
+                ? samQwenGenerate({ text: speechText, ...qwen, effects, signal })
+                : engine === "silero"
+                ? samGenerateSilero({ text: speechText, ...silero, effects, signal })
+                : Pa({ text: speechText, ...piper, effects, signal })
+        });
+    }
+    let sam = eo(e);
+    await Je(sam);
+    return { engine: "sam", text: et(t), effects, playbackMode, ...sam, ...portraitSettings, ...profile };
 }
 async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s }) {
 	ui.notifications.info(e);
@@ -6309,7 +6401,8 @@ function Ho(e, t, n = "Generating...") {
 	r.prop("disabled", !1), i.prop("disabled", t), a.prop("disabled", t || !wo()), i.find("span").text(t ? n : "Preview"), a.find("span").text(t ? n : "Play for All");
 }
 function Uo(e) {
-	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam", silero = t === "silero";
+	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam", silero = t === "silero", qwen = t === "qwen";
+	e.find("#sam-qwen-engine-details").toggle(qwen), e.find("#sam-qwen-settings").toggle(qwen), e.find("#sam-qwen-voice-row").toggle(qwen), e.find("#sam-qwen-status").toggle(qwen), e.find(".samvoice-qwen-instructions-row").toggle(qwen);
 	e.find("#sam-silero-engine-details").toggle(silero), e.find("#sam-silero-settings").toggle(silero), e.find("#sam-silero-voice-row").toggle(silero), e.find("#sam-silero-status").toggle(silero);
 	e.find("#sam-piper-engine-details").toggle(n), e.find("#sam-piper-settings").toggle(n), e.find("#sam-piper-voice-row").toggle(n), e.find("#sam-piper-status").toggle(n), e.find("#sam-presets-details").toggle(r), e.find("#sam-voice-settings-details").toggle(r);
 }
