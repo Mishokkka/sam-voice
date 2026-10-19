@@ -1,5 +1,5 @@
 //#region scripts/constants.js
-var e = "sam-voice", t = ["sam", "piper"], n = [
+var e = "sam-voice", t = ["sam", "piper", "silero"], n = [
 	"interrupt",
 	"queue",
 	"overlap"
@@ -556,6 +556,18 @@ function te() {
 		config: !1,
 		type: String,
 		default: ""
+	}), game.settings.register(e, "sileroServerUrl", {
+		name: "Silero Server URL",
+		scope: "client",
+		config: !1,
+		type: String,
+		default: "http://127.0.0.1:5051"
+	}), game.settings.register(e, "sileroVoice", {
+		name: "Silero Voice",
+		scope: "client",
+		config: !1,
+		type: String,
+		default: "xenia"
 	}), game.settings.register(e, "playbackMode", {
 		name: "Playback Mode",
 		scope: "client",
@@ -719,6 +731,8 @@ function oe() {
 		engine: le(game.settings.get(e, "engine")),
 		piperServerUrl: fe(game.settings.get(e, "piperServerUrl")),
 		piperVoice: String(game.settings.get("sam-voice", "piperVoice") || ""),
+		sileroServerUrl: samSileroUrl(game.settings.get(e, "sileroServerUrl")),
+		sileroVoice: String(game.settings.get(e, "sileroVoice") || "xenia"),
 		speakerPortraitEnabled: game.settings.get(e, "speakerPortraitEnabled"),
 		speakerPortraitProfileId: game.settings.get(e, "speakerPortraitProfileId"),
 		speakerPortraitImageId: game.settings.get(e, "speakerPortraitImageId"),
@@ -730,7 +744,7 @@ function se() {
 }
 async function ce(e) {
 	let t = [T("engine", le(e.engine))];
-	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
+	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "sileroServerUrl" in e && t.push(T("sileroServerUrl", samSileroUrl(e.sileroServerUrl))), "sileroVoice" in e && t.push(T("sileroVoice", String(e.sileroVoice || "xenia").trim().slice(0, 160))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
 }
 function le(e) {
 	return t.includes(e) ? e : "sam";
@@ -743,11 +757,12 @@ async function de(e) {
 	await T("playbackMode", n.includes(e) ? e : "interrupt");
 }
 function fe(e) {
-	try {
-		return w(e, "http://127.0.0.1:5050");
-	} catch {
-		return "http://127.0.0.1:5050";
-	}
+	try { return w(e, "http://127.0.0.1:5050"); }
+	catch { return "http://127.0.0.1:5050"; }
+}
+function samSileroUrl(e) {
+	try { return w(e, "http://127.0.0.1:5051"); }
+	catch { return "http://127.0.0.1:5051"; }
 }
 async function T(t, n) {
 	game.settings.get("sam-voice", t) !== n && await game.settings.set(e, t, n);
@@ -809,11 +824,10 @@ async function _e(e) {
 function ve(e) {
 	return be(e).flatMap((e, t) => {
 		let n = String(e?.name || `Profile ${t + 1}`), r = e?.piperServerUrl;
-		return !r || ie(r) ? [] : [{
-			profile: n,
-			field: "piperServerUrl",
-			url: String(r)
-		}];
+		let a = e?.sileroServerUrl, o = [];
+		if (r && !ie(r)) o.push({ profile: n, field: "piperServerUrl", url: String(r) });
+		if (a && !ie(a)) o.push({ profile: n, field: "sileroServerUrl", url: String(a) });
+		return o;
 	});
 }
 function ye(e = {}, t = {}) {
@@ -824,6 +838,8 @@ function ye(e = {}, t = {}) {
 		engine: le(e.engine),
 		piperServerUrl: Se(e.piperServerUrl, t.allowRemote ?? se()),
 		piperVoice: De(e.piperVoice, 160),
+		sileroServerUrl: Se(e.sileroServerUrl, t.allowRemote ?? se(), "http://127.0.0.1:5051"),
+		sileroVoice: De(e.sileroVoice || "xenia", 160),
 		speakerPortraitEnabled: e.speakerPortraitEnabled !== !1,
 		speakerPortraitProfileId: De(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: De(e.speakerPortraitImageId, 160),
@@ -838,15 +854,11 @@ function be(e) {
 }
 function xe(e = {}) {
 	let t = { ...e };
-	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t;
+	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t.sileroServerUrl && !ie(t.sileroServerUrl) && delete t.sileroServerUrl, t;
 }
-function Se(e, t) {
-	try {
-		let n = w(e, "http://127.0.0.1:5050");
-		return t || ie(n) ? n : "http://127.0.0.1:5050";
-	} catch {
-		return "http://127.0.0.1:5050";
-	}
+function Se(e, t, r = "http://127.0.0.1:5050") {
+	try { let n = w(e, r); return t || ie(n) ? n : r; }
+	catch { return r; }
 }
 function Ce(e) {
 	return {
@@ -1136,7 +1148,7 @@ function at(e, a = {}) {
 		speakerPortraitProfileId: k(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: k(e.speakerPortraitImageId, 160)
 	};
-	return o === "sam" ? Object.assign(u, dt(e)) : o === "piper" && Object.assign(u, ft(e)), u;
+	return o === "sam" ? Object.assign(u, dt(e)) : (o === "piper" || o === "silero") && Object.assign(u, ft(e)), u;
 }
 function ot(e, t = a) {
 	let n = String(e || ""), r = n.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]*={0,2})$/);
@@ -4025,7 +4037,7 @@ function R(e, t, n) {
 //#endregion
 //#region scripts/audio/audio.js
 var z = globalThis.AudioContext || globalThis.webkitAudioContext;
-nt("sam", Pn), nt("piper", yt);
+nt("sam", Pn), nt("piper", yt), nt("silero", yt);
 var B, hr, V, gr = null, _r = !1, vr = !1, yr = null, br = null, xr = null, H = /* @__PURE__ */ new Set(), U = [], Sr = !1, W = 0;
 function Cr() {
 	if (wr(), B && B.state !== "closed") return B;
@@ -5553,6 +5565,33 @@ function Ra(e) {
 	return e ? String(e).trim() : "";
 }
 //#endregion
+//#region scripts/ui/sileroPanel.js
+var samSileroPanel = Ea({
+	id: "silero", title: "Silero", iconClass: "fas fa-language",
+	summaryLabel: "Silero TTS", summaryHint: "Локальный русский TTS на CPU.",
+	defaultServerUrl: "http://127.0.0.1:5051",
+	defaultVoice: "xenia", defaultVoiceLabel: null,
+	urlLabel: "Silero URL", voiceLabel: "Voice",
+	checkTitle: "Check Silero", checkingText: "Checking Silero...",
+	okText: (e) => `Silero OK. Voices: ${e.length}`,
+	errorText: (e) => e?.message || "Silero unavailable. Start silero_server.py.",
+	checkServer: (e) => Ta(e, { force: !0 }),
+	extractVoices: (e) => Object.keys(e.voices || {}),
+	getServerUrlFromSettings: (e) => e.sileroServerUrl,
+	getVoiceFromSettings: (e) => e.sileroVoice
+});
+function samRenderSilero(e) { return samSileroPanel.render(e); }
+function samBindSilero(e, t) { samSileroPanel.bind(e, t); }
+function samCheckSilero(e, t) { return samSileroPanel.checkFromDialog(e, t); }
+function samReadSilero(e) { return samSileroPanel.readSettingsFromDialog(e); }
+function samApplySilero(e, t) { return samSileroPanel.applySettingsToDialog(e, t); }
+async function samGenerateSilero({ text, sileroServerUrl, sileroVoice, effects, signal }) {
+	return {
+		engine: "silero", text, voice: sileroVoice,
+		...await Ca(text, sileroServerUrl, sileroVoice, { signal }), effects
+	};
+}
+//#endregion
 //#region scripts/ui/sessionPanel.js
 var za = 0;
 function Ba() {
@@ -5635,15 +5674,19 @@ async function Ja(e, t) {
 	await Ya(e, t);
 }
 async function Ya(e, t) {
-	let n = e.find("#sam-piper-url").val()?.trim() || "http://127.0.0.1:5050", r = Ra(e.find("#sam-piper-voice").val());
-	X(e, "#sam-session-tts", "Piper...", "warn"), X(e, "#sam-session-voice", r || "Default", "warn");
+	let engine = e.find("#sam-engine").val(), silero = engine === "silero", id = silero ? "silero" : "piper";
+	let url = e.find(`#sam-${id}-url`).val()?.trim() || (silero ? "http://127.0.0.1:5051" : "http://127.0.0.1:5050");
+	let voice = Ra(e.find(`#sam-${id}-voice`).val()), label = silero ? "Silero" : "Piper";
+	X(e, "#sam-session-tts", `${label}...`, "warn"), X(e, "#sam-session-voice", voice || "Default", "warn");
 	try {
-		let i = await Ta(n);
+		let response = await Ta(url);
 		if (t !== za) return;
-		X(e, "#sam-session-tts", `Piper онлайн (${Object.keys(i.voices || {}).length})`, "ok"), X(e, "#sam-session-voice", r || "Default", r ? "ok" : "warn");
+		X(e, "#sam-session-tts", `${label} онлайн (${Object.keys(response.voices || {}).length})`, "ok");
+		X(e, "#sam-session-voice", voice || "Default", voice ? "ok" : "warn");
 	} catch {
 		if (t !== za) return;
-		X(e, "#sam-session-tts", "Piper offline", "error"), X(e, "#sam-session-voice", r || "Default", "warn");
+		X(e, "#sam-session-tts", `${label} offline`, "error");
+		X(e, "#sam-session-voice", voice || "Default", "warn");
 	}
 }
 function Xa(e, t) {
@@ -6000,6 +6043,7 @@ function Do() {
                         <select id="sam-engine">
                             <option value="sam" ${e.engine === "sam" ? "selected" : ""}>SAM</option>
                             <option value="piper" ${e.engine === "piper" ? "selected" : ""}>Piper</option>
+                            <option value="silero" ${e.engine === "silero" ? "selected" : ""}>Silero</option>
                         </select>
                     </label>
 
@@ -6060,6 +6104,7 @@ function Do() {
 
                     <div class="samvoice-engine-drawer">
                         ${Ma(e)}
+                        ${samRenderSilero(e)}
                         ${Qa(n)}
                     </div>
                 </aside>
@@ -6080,7 +6125,7 @@ function Oo(e) {
 	Va(t, No(t)), hi(t, {
 		getProfileData: () => ko(t),
 		applyProfile: (e) => Ao(t, e)
-	}), Ei(t), oo(t), Na(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
+	}), Ei(t), oo(t), Na(t, jo(t)), samBindSilero(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
 		vo(t), Bo(t);
 	}).on("keydown", function(e) {
 		if (e.key === "Enter") {
@@ -6091,7 +6136,7 @@ function Oo(e) {
 			(e.ctrlKey || e.metaKey) && (e.preventDefault(), t.find("#sam-play-everyone").first?.click?.());
 		}
 	}), t.find("#sam-engine").on("change", function() {
-		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), Y(t, No(t));
+		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), Y(t, No(t));
 	}), t.find("#sam-playback-mode").on("change", async function() {
 		await de(this.value);
 	}), t.find("#sam-stop-audio").off("click").on("click", async () => {
@@ -6126,7 +6171,7 @@ function Oo(e) {
 				Ho(t, !1);
 			}
 		}
-	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t));
+	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t));
 }
 function ko(e) {
 	let t = Ia(e);
@@ -6134,6 +6179,7 @@ function ko(e) {
 		engine: e.find("#sam-engine").val(),
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice,
+		...samReadSilero(e),
 		...so(e),
 		samVoiceSettings: eo(e),
 		effects: q(e)
@@ -6143,7 +6189,7 @@ function Ao(e, t) {
 	e.find("#sam-engine").val(t.engine || "sam"), La(e, {
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice
-	}), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
+	}), samApplySilero(e, t), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), e.find("#sam-engine").val() === "silero" && samCheckSilero(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
 }
 function jo(e) {
 	return {
@@ -6170,7 +6216,7 @@ function No(e) {
 }
 async function Po(e) {
 	let t = e.find("#sam-engine").val(), n = Ia(e).piperVoice || "";
-	return await Io(e, t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
+	return await Io(e, t === "silero" || t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
 		saveToHistory: !1,
 		notification: "Generating test voice..."
 	});
@@ -6180,44 +6226,31 @@ async function Fo(e, t = {}) {
 	return n.length ? await Io(e, n, t) : null;
 }
 async function Io(e, t, n = {}) {
-	let r = e.find("#sam-engine").val(), i = q(e), a = Ia(e), o = so(e), s = co(o), c = zo(e), l = Ro(e);
+	let r = e.find("#sam-engine").val(), i = q(e), a = Ia(e), b = samReadSilero(e), o = so(e), s = co(o), c = zo(e), l = Ro(e);
 	if (await de(c), await ce({
-		engine: r,
-		piperServerUrl: a.piperServerUrl,
-		piperVoice: a.piperVoice,
-		...o
-	}), await ze(i), n.saveToHistory && await Ze(t), r === "piper") {
-		let e = _o({
-			engine: r,
-			text: t,
-			piperVoice: a.piperVoice
-		});
+		engine: r, piperServerUrl: a.piperServerUrl, piperVoice: a.piperVoice,
+		sileroServerUrl: b.sileroServerUrl, sileroVoice: b.sileroVoice, ...o
+	}), await ze(i), n.saveToHistory && await Ze(t), r === "piper" || r === "silero") {
+		let isSilero = r === "silero";
+		let speechText = isSilero ? t : _o({ engine: r, text: t, piperVoice: a.piperVoice });
 		return await Lo({
-			notification: n.notification || "Generating Piper voice...",
-			cancelLog: "SAM Voice: Piper generation cancelled.",
-			errorFallback: "Piper generation failed. Check start-piper.bat.",
-			originalText: t,
-			playbackMode: c,
-			speakerPortraitPlaybackSettings: s,
-			profileLink: l,
-			generateFn: (t) => Pa({
-				text: e,
-				piperServerUrl: a.piperServerUrl,
-				piperVoice: a.piperVoice,
-				effects: i,
-				signal: t
+			notification: n.notification || `Generating ${isSilero ? "Silero" : "Piper"} voice...`,
+			cancelLog: `SAM Voice: ${isSilero ? "Silero" : "Piper"} generation cancelled.`,
+			errorFallback: `${isSilero ? "Silero" : "Piper"} generation failed. Check local TTS server.`,
+			originalText: t, playbackMode: c,
+			speakerPortraitPlaybackSettings: s, profileLink: l,
+			generateFn: (signal) => isSilero ? samGenerateSilero({
+				text: speechText, sileroServerUrl: b.sileroServerUrl,
+				sileroVoice: b.sileroVoice, effects: i, signal
+			}) : Pa({
+				text: speechText, piperServerUrl: a.piperServerUrl,
+				piperVoice: a.piperVoice, effects: i, signal
 			})
 		});
 	}
 	let u = eo(e);
 	return await Je(u), {
-		engine: "sam",
-		text: et(t),
-		effects: i,
-		playbackMode: c,
-		...u,
-		...s,
-		...l
+		engine: "sam", text: et(t), effects: i, playbackMode: c, ...u, ...s, ...l
 	};
 }
 async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s }) {
@@ -6263,7 +6296,8 @@ function Ho(e, t, n = "Generating...") {
 	r.prop("disabled", !1), i.prop("disabled", t), a.prop("disabled", t || !wo()), i.find("span").text(t ? n : "Preview"), a.find("span").text(t ? n : "Play for All");
 }
 function Uo(e) {
-	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam";
+	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam", silero = t === "silero";
+	e.find("#sam-silero-engine-details").toggle(silero), e.find("#sam-silero-settings").toggle(silero), e.find("#sam-silero-voice-row").toggle(silero), e.find("#sam-silero-status").toggle(silero);
 	e.find("#sam-piper-engine-details").toggle(n), e.find("#sam-piper-settings").toggle(n), e.find("#sam-piper-voice-row").toggle(n), e.find("#sam-piper-status").toggle(n), e.find("#sam-presets-details").toggle(r), e.find("#sam-voice-settings-details").toggle(r);
 }
 //#endregion
