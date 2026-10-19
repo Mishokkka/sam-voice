@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.4 (phrase export)
+
+- Add a Download WAV button for the last phrase actually started on the GM client, for all four engines and Preview/Play for All.
+- Reuse decoded speech, playback settings and random effect buffers; exporting does not run synthesis again.
+- Render the complete isolated phrase with its original effects, speed, pitch, output compressor and effect tails to stereo 16-bit PCM WAV.
+- Preserve the export across Stop, failed requests and dialog reopening; keep only the latest started phrase in memory until page reload.
+- Include a readable phrase excerpt and timestamp in the filename.
+
 ## 1.4.3 (playback reliability)
 
 - Collect playback/Stop acknowledgements from each active remote client with a bounded wait; identify failed clients.

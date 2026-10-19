@@ -1,4 +1,5 @@
 const test = require('node:test');
+require('./export.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
