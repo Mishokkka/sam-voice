@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.1 (Silero integration)
+
+- Added a separate Silero engine (Russian CPU-based TTS) alongside SAM and Piper.
+- Added independent local backend URL and five-voice selection, health checks and voice profile persistence.
+- Reused validated generated-audio transport and synchronized playback for players.
+- Added a loopback-only Python server and Windows setup documentation in `tools/silero/`.
+- No model weights bundled. The server must be started separately.
+
+
 ## 1.4.0
 
 ### Fixed

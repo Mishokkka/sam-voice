@@ -1,7 +1,7 @@
 {
   "id": "sam-voice",
   "title": "SAM Voice",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "socket": true,
   "compatibility": {
     "minimum": "13",
