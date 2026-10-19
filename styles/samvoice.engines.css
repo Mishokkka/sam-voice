@@ -76,3 +76,21 @@
     background: transparent;
     border: none;
 }
+
+/* Qwen3-TTS optional performance and style instructions. */
+.samvoice-qwen-instructions-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+}
+.samvoice-qwen-instructions-row textarea {
+    width: 100%;
+    min-width: 0;
+    min-height: 76px;
+    padding: 9px 10px;
+    line-height: 1.4;
+    resize: vertical;
+    font-size: var(--sam-font-size-md);
+}
+.samvoice-qwen-instructions-row small {
+    color: var(--sam-text-muted);
+}

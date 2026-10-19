@@ -1,5 +1,5 @@
 //#region scripts/constants.js
-var e = "sam-voice", t = ["sam", "piper", "silero"], n = [
+var e = "sam-voice", t = ["sam", "piper", "silero", "qwen"], n = [
 	"interrupt",
 	"queue",
 	"overlap"
@@ -563,12 +563,14 @@ function te() {
 		type: String,
 		default: "http://127.0.0.1:5051"
 	}), game.settings.register(e, "sileroVoice", {
-		name: "Silero Voice",
-		scope: "client",
-		config: !1,
-		type: String,
-		default: "xenia"
-	}), game.settings.register(e, "playbackMode", {
+        name: "Silero Voice", scope: "client", config: !1, type: String, default: "xenia"
+    }), game.settings.register(e, "qwenServerUrl", {
+        name: "Qwen3-TTS Server URL", scope: "client", config: !1, type: String, default: "http://127.0.0.1:8081"
+    }), game.settings.register(e, "qwenVoice", {
+        name: "Qwen3-TTS Voice", scope: "client", config: !1, type: String, default: "ryan"
+    }), game.settings.register(e, "qwenInstructions", {
+        name: "Qwen3-TTS Voice Instructions", scope: "client", config: !1, type: String, default: ""
+    }), game.settings.register(e, "playbackMode", {
 		name: "Playback Mode",
 		scope: "client",
 		config: !1,
@@ -733,6 +735,9 @@ function oe() {
 		piperVoice: String(game.settings.get("sam-voice", "piperVoice") || ""),
 		sileroServerUrl: samSileroUrl(game.settings.get(e, "sileroServerUrl")),
 		sileroVoice: String(game.settings.get(e, "sileroVoice") || "xenia"),
+		qwenServerUrl: samQwenUrl(game.settings.get(e, "qwenServerUrl")),
+		qwenVoice: String(game.settings.get(e, "qwenVoice") || "ryan"),
+		qwenInstructions: String(game.settings.get(e, "qwenInstructions") || ""),
 		speakerPortraitEnabled: game.settings.get(e, "speakerPortraitEnabled"),
 		speakerPortraitProfileId: game.settings.get(e, "speakerPortraitProfileId"),
 		speakerPortraitImageId: game.settings.get(e, "speakerPortraitImageId"),
@@ -744,7 +749,7 @@ function se() {
 }
 async function ce(e) {
 	let t = [T("engine", le(e.engine))];
-	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "sileroServerUrl" in e && t.push(T("sileroServerUrl", samSileroUrl(e.sileroServerUrl))), "sileroVoice" in e && t.push(T("sileroVoice", String(e.sileroVoice || "xenia").trim().slice(0, 160))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
+	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "sileroServerUrl" in e && t.push(T("sileroServerUrl", samSileroUrl(e.sileroServerUrl))), "sileroVoice" in e && t.push(T("sileroVoice", String(e.sileroVoice || "xenia").trim().slice(0, 160))), "qwenServerUrl" in e && t.push(T("qwenServerUrl", samQwenUrl(e.qwenServerUrl))), "qwenVoice" in e && t.push(T("qwenVoice", String(e.qwenVoice || "ryan").trim().slice(0, 160))), "qwenInstructions" in e && t.push(T("qwenInstructions", String(e.qwenInstructions || "").trim().slice(0, 600))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
 }
 function le(e) {
 	return t.includes(e) ? e : "sam";
@@ -761,8 +766,12 @@ function fe(e) {
 	catch { return "http://127.0.0.1:5050"; }
 }
 function samSileroUrl(e) {
-	try { return w(e, "http://127.0.0.1:5051"); }
-	catch { return "http://127.0.0.1:5051"; }
+    try { return w(e, "http://127.0.0.1:5051"); }
+    catch { return "http://127.0.0.1:5051"; }
+}
+function samQwenUrl(e) {
+    try { return w(e, "http://127.0.0.1:8081"); }
+    catch { return "http://127.0.0.1:8081"; }
 }
 async function T(t, n) {
 	game.settings.get("sam-voice", t) !== n && await game.settings.set(e, t, n);
@@ -827,6 +836,7 @@ function ve(e) {
 		let a = e?.sileroServerUrl, o = [];
 		if (r && !ie(r)) o.push({ profile: n, field: "piperServerUrl", url: String(r) });
 		if (a && !ie(a)) o.push({ profile: n, field: "sileroServerUrl", url: String(a) });
+		if (e?.qwenServerUrl && !ie(e.qwenServerUrl)) o.push({ profile: n, field: "qwenServerUrl", url: String(e.qwenServerUrl) });
 		return o;
 	});
 }
@@ -840,6 +850,9 @@ function ye(e = {}, t = {}) {
 		piperVoice: De(e.piperVoice, 160),
 		sileroServerUrl: Se(e.sileroServerUrl, t.allowRemote ?? se(), "http://127.0.0.1:5051"),
 		sileroVoice: De(e.sileroVoice || "xenia", 160),
+		qwenServerUrl: Se(e.qwenServerUrl, t.allowRemote ?? se(), "http://127.0.0.1:8081"),
+		qwenVoice: De(e.qwenVoice || "ryan", 160),
+		qwenInstructions: De(e.qwenInstructions, 600),
 		speakerPortraitEnabled: e.speakerPortraitEnabled !== !1,
 		speakerPortraitProfileId: De(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: De(e.speakerPortraitImageId, 160),
@@ -854,7 +867,7 @@ function be(e) {
 }
 function xe(e = {}) {
 	let t = { ...e };
-	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t.sileroServerUrl && !ie(t.sileroServerUrl) && delete t.sileroServerUrl, t;
+	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t.sileroServerUrl && !ie(t.sileroServerUrl) && delete t.sileroServerUrl, t.qwenServerUrl && !ie(t.qwenServerUrl) && delete t.qwenServerUrl, t;
 }
 function Se(e, t, r = "http://127.0.0.1:5050") {
 	try { let n = w(e, r); return t || ie(n) ? n : r; }
@@ -1148,7 +1161,7 @@ function at(e, a = {}) {
 		speakerPortraitProfileId: k(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: k(e.speakerPortraitImageId, 160)
 	};
-	return o === "sam" ? Object.assign(u, dt(e)) : (o === "piper" || o === "silero") && Object.assign(u, ft(e)), u;
+	return o === "sam" ? Object.assign(u, dt(e)) : (o === "piper" || o === "silero" || o === "qwen") && Object.assign(u, ft(e)), u;
 }
 function ot(e, t = a) {
 	let n = String(e || ""), r = n.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]*={0,2})$/);
@@ -3734,7 +3747,9 @@ async function Fn(e, t) {
 	} catch (e) {
 		console.warn("SAM Voice: worker synthesis failed, using main-thread fallback", e), Vn();
 	}
-	return new An(t).buf32(e);
+	let samples = new An(t).buf32(e);
+	if (!(samples instanceof Float32Array) || !samples.length) throw Error("SAM cannot pronounce this text.");
+	return samples;
 }
 function In() {
 	return !Mn && typeof globalThis.Worker == "function";
@@ -3742,7 +3757,7 @@ function In() {
 function Ln() {
 	return F || (F = new Worker(new URL(
 		/* @vite-ignore */
-		"" + new URL("assets/samWorker-CX52Kgt8.js", import.meta.url).href,
+		"" + new URL("assets/samWorker-bffb1682f180.js", import.meta.url).href,
 		"" + import.meta.url
 	), {
 		type: "module",
@@ -4037,7 +4052,7 @@ function R(e, t, n) {
 //#endregion
 //#region scripts/audio/audio.js
 var z = globalThis.AudioContext || globalThis.webkitAudioContext;
-nt("sam", Pn), nt("piper", yt), nt("silero", yt);
+nt("sam", Pn), nt("piper", yt), nt("silero", yt), nt("qwen", yt);
 var B, hr, V, gr = null, _r = !1, vr = !1, yr = null, br = null, xr = null, H = /* @__PURE__ */ new Set(), U = [], Sr = !1, W = 0;
 function Cr() {
 	if (wr(), B && B.state !== "closed") return B;
@@ -4074,13 +4089,14 @@ async function Dr(e) {
 	} catch (t) {
 		return Hr(e, t, "rejected");
 	}
-	globalThis.Hooks?.callAll?.("samVoice.speechStarted", t), globalThis.Hooks?.callAll?.("samVoice.speechReceived", {
-		requestId: t.requestId,
-		engine: t.engine,
-		scope: t.scope
-	});
 	let n = Wr(t.playbackMode);
 	try {
+		// Receiving speech never waits for a future user gesture, including in queue mode.
+		samRequireRunningAudio();
+		globalThis.Hooks?.callAll?.("samVoice.speechStarted", t);
+		globalThis.Hooks?.callAll?.("samVoice.speechReceived", {
+			requestId: t.requestId, engine: t.engine, scope: t.scope
+		});
 		if (n === "interrupt") return kr(), (await Pr(t)).result;
 		if (n === "queue") {
 			if (U.length >= 20) throw new S(x.QUEUE_FULL, "Playback queue is full (20 entries).");
@@ -4115,6 +4131,7 @@ function Ar() {
 	H.clear();
 }
 async function jr(e = {}) {
+	si();
 	let t = !!e?.hard;
 	if (W += 1, U.length = 0, Ar(), globalThis.Hooks?.callAll?.("samVoice.speechStopped", { hard: t }), !t) return Ur(!1);
 	let n = B;
@@ -4143,19 +4160,18 @@ async function Nr() {
 						error: C(t)
 					});
 				}
-				if (t !== W) {
-					U.length = 0;
-					break;
-				}
+				// Stop already removed the old queue. Keep any newly queued requests.
+				if (t !== W) break;
 			}
 		} finally {
 			Sr = !1;
+			if (U.length) void Nr();
 		}
 	}
 }
 async function Pr(e) {
 	let t = W;
-	if (await Lr(), t !== W) throw new S(x.PLAYBACK_CANCELLED, "Playback was cancelled before synthesis.");
+	samRequireRunningAudio();
 	let n = await rt(e.engine).createAudioBuffer({
 		request: e,
 		audioContext: B,
@@ -4178,16 +4194,24 @@ function Ir(e, t = {}) {
 	};
 }
 async function Lr() {
-	if ((!B || B.state === "closed") && Cr(), B.state === "suspended") try {
-		await B.resume();
-	} catch (e) {
-		throw new S(x.AUDIO_LOCKED, "Browser audio is locked. Click Unlock on this client before shared playback.", { cause: e?.message || String(e) });
+	// Only gesture/unlock handlers call resume. A bounded wait lets the next gesture retry.
+	const context = Cr();
+	if (context.state === "suspended") try {
+		await Yr(context.resume(), 1500, "Audio unlock timed out.");
+	} catch (error) {
+		throw new S(x.AUDIO_LOCKED, "Browser audio is locked. Click Unlock on this client before shared playback.", { cause: error?.message || String(error) });
 	}
-	if (B.state !== "running") throw new S(x.AUDIO_LOCKED, `Browser audio is not running (${B.state}). Click Unlock on this client.`, { state: B.state });
-	return B;
+	if (context !== B) throw new S(x.PLAYBACK_CANCELLED, "Audio was reset while unlocking.");
+	return samRequireRunningAudio();
+}
+function samRequireRunningAudio() {
+	const context = Cr();
+	if (context.state !== "running") throw new S(x.AUDIO_LOCKED, `Browser audio is not running (${context.state}). Click Unlock on this client.`, { state: context.state });
+	return context;
 }
 function Rr(e, t, n) {
 	if (n !== W) throw new S(x.PLAYBACK_CANCELLED, "Playback was cancelled before start.");
+	samRequireRunningAudio();
 	let r = B.createBufferSource(), i = Hn(t.effects), a, o = new Promise((e) => {
 		a = e;
 	}), s = {
@@ -4310,11 +4334,10 @@ var Gr = class {
 			...t,
 			scope: "local"
 		});
-		let n = await this.playLocal(t);
-		return this.#i(t, {
-			local: n,
-			remote: []
-		}, "local"), {
+		let n;
+		try { n = await this.playLocal(t); }
+		catch (error) { n = qr(t, error, "local"); }
+		const result = {
 			ok: !!n?.ok,
 			requestId: t.requestId,
 			scope: "local",
@@ -4322,6 +4345,8 @@ var Gr = class {
 			remote: [],
 			failures: n?.ok ? [] : [n]
 		};
+		this.#i(t, result, "local");
+		return result;
 	}
 	async speak(e) {
 		this.#r(), this.#n();
@@ -4345,11 +4370,14 @@ var Gr = class {
 		return this.#i(t, u, "everyone"), u;
 	}
 	async stop({ hard: e = !1 } = {}) {
+		si();
 		let t = this.stopLocal({ hard: e }), n = this.getSocket(), r = this.isSocketReady() && n ? this.#t(n, "stopAllAudio", { hard: e }) : Promise.resolve([]), [i, a] = await Promise.allSettled([t, r]);
+		const local = i.status === "fulfilled" ? i.value : qr({}, i.reason, "local");
+		const remote = a.status === "fulfilled" ? a.value : [qr({}, a.reason, "remote")];
 		return {
-			ok: i.status === "fulfilled" && a.status === "fulfilled",
-			local: i.status === "fulfilled" ? i.value : C(i.reason),
-			remote: a.status === "fulfilled" ? a.value : C(a.reason)
+			ok: !!local?.ok && remote.every(result => result.ok),
+			local, remote,
+			failures: [local, ...remote].filter(result => !result?.ok)
 		};
 	}
 	async collectClientAudioStatuses() {
@@ -4375,7 +4403,22 @@ var Gr = class {
 		return e.id === game.user.id ? Jr(e, !0, this.getLocalStatus()) : (this.#n(), Jr(e, !1, await Yr(this.getSocket().executeAsUser("getClientAudioStatus", e.id), o, `Audio status timed out for ${e.name}.`)));
 	}
 	async #t(e, t, n) {
-		return typeof e.executeForOthers == "function" ? await e.executeForOthers(t, n) : await e.executeForEveryone(t, n);
+		// socketlib broadcasts are fire-and-forget; only executeAsUser returns the result.
+		const recipients = Array.from(game.users || []).filter(user => user.active && user.id !== game.user.id);
+		const timeout = t === "playVoice" ? 30000 : o;
+		return await Promise.all(recipients.map(async user => {
+			let result;
+			try {
+				result = await Yr(e.executeAsUser(t, user.id, n), timeout, "Client did not respond in time.");
+				if (!result || typeof result.ok !== "boolean") throw new S(x.PLAYBACK_FAILED, "Client returned no playback result. Reload Foundry on this client.");
+			} catch (error) {
+				result = qr(n, error, user.id);
+			}
+			return {
+				...result, userId: user.id, userName: user.name,
+				...(!result.ok ? { error: { ...result.error, message: `${user.name}: ${result.error?.message || "Playback failed."}` } } : {})
+			};
+		}));
 	}
 	#n() {
 		if (!this.isSocketReady() || !this.getSocket()) throw new S(x.SOCKET_OFFLINE, "SAM Voice socket is not ready yet.");
@@ -4624,7 +4667,7 @@ function di() {
 	return ai;
 }
 function fi(e) {
-	return e?.name === "AbortError" || e?.name === "TimeoutError";
+	return e?.name === "AbortError";
 }
 //#endregion
 //#region scripts/ui/html.js
@@ -5307,10 +5350,15 @@ function ha(e, t = ca) {
 }
 async function ga(e, t) {
 	let n = va(t), r = va(e?.type);
-	for (let e of [n, r]) if (e.startsWith("audio/")) return la.get(e) || e;
 	let i = await _a(e);
-	if (i) return i;
-	throw new S(x.UNSUPPORTED_AUDIO_MIME, `TTS backend did not return recognizable audio data (${n || r || "unknown MIME"}).`);
+	if (!i) throw new S(x.UNSUPPORTED_AUDIO_MIME, `TTS backend did not return recognizable audio data (${n || r || "unknown MIME"}).`);
+	for (const declared of [n, r]) {
+		if (!declared.startsWith("audio/")) continue;
+		const mime = la.get(declared) || declared;
+		if (!it.has(mime)) throw new S(x.UNSUPPORTED_AUDIO_MIME, `Unsupported generated audio MIME type: ${mime}.`);
+		if (mime !== i) throw new S(x.INVALID_AUDIO_DATA, `Audio signature does not match ${mime} (detected ${i}).`);
+	}
+	return i;
 }
 async function _a(e) {
 	let t = new Uint8Array(await e.slice(0, 16).arrayBuffer()), n = String.fromCharCode(...t);
@@ -5592,6 +5640,86 @@ async function samGenerateSilero({ text, sileroServerUrl, sileroVoice, effects, 
 	};
 }
 //#endregion
+//#region scripts/ui/qwenPanel.js
+var samQwenVoices = ["aiden", "dylan", "eric", "ono_anna", "ryan", "serena", "sohee", "uncle_fu", "vivian"];
+async function samQwenFetchInfo(url, { signal } = {}) {
+    let base = ae(ua(url, "http://127.0.0.1:8081"), se());
+    let controller = ma({ signal, timeoutMs: 15000 });
+    try {
+        let response = await fetch(base + "/v1/models", { signal: controller.signal });
+        if (!response.ok) throw Error(`Qwen server check failed: ${response.status} ${await pa(response)}`);
+        let json = await response.json();
+        let loaded = Array.isArray(json?.data) ? json.data : [];
+        let active = loaded.find((item) =>
+            /qwen3[-_ ]?tts/i.test(String(item?.id || "")) ||
+            /qwen3[-_ ]?tts/i.test(String(item?.speech?.name || ""))
+        );
+        if (!active) throw Error("No Qwen3-TTS synthesis model is loaded on this server.");
+        return { ok: true, model: String(active.id || ""),
+            voices: Object.fromEntries(samQwenVoices.map((voice) => [voice, { name: voice }])) };
+    } finally {
+        controller.cleanup();
+    }
+}
+async function samQwenGenerate({ text, qwenServerUrl, qwenVoice, qwenInstructions, effects, signal }) {
+    text = lt(text, r);
+    let server = ae(ua(qwenServerUrl, "http://127.0.0.1:8081"), se());
+    let voice = samQwenVoices.includes(qwenVoice) ? qwenVoice : "ryan";
+    let instructions = String(qwenInstructions || "").trim().slice(0, 600);
+    if (instructions) {
+        let info = await samQwenFetchInfo(server, { signal });
+        if (!/1[._-]?7[bB]/.test(info.model)) {
+            throw Error("Voice Instructions require Qwen3-TTS 1.7B. Clear the instruction or start speech.cpp with 1.7B.");
+        }
+    }
+    let body = { input: text, voice, language: "ru", response_format: "wav" };
+    if (instructions) body.instructions = instructions;
+    let controller = ma({ signal, timeoutMs: 120000 });
+    try {
+        let response = await fetch(server + "/v1/audio/speech", {
+            method: "POST", headers: { "Content-Type": "application/json; charset=utf-8" },
+            body: JSON.stringify(body), signal: controller.signal
+        });
+        if (!response.ok) throw Error(`Qwen speech failed: ${response.status} ${await pa(response)}`);
+        return { engine: "qwen", text, voice,
+            ...await fa(await response.blob(), response.headers.get("content-type")), effects };
+    } finally {
+        controller.cleanup();
+    }
+}
+var samQwenPanel = Ea({
+    id: "qwen", title: "Qwen3-TTS", iconClass: "fas fa-microphone-alt",
+    summaryLabel: "Qwen3-TTS", summaryHint: "Нейронная озвучка с интонационными инструкциями (1.7B).",
+    defaultServerUrl: "http://127.0.0.1:8081", defaultVoice: "ryan", defaultVoiceLabel: null,
+    urlLabel: "Qwen Server URL", voiceLabel: "Voice",
+    checkTitle: "Check Qwen3-TTS", checkingText: "Checking Qwen3-TTS...",
+    okText: (list, response) => `Qwen онлайн: ${response.model} (${list.length} голосов)`,
+    errorText: (error) => error?.message || "Qwen offline. Run speech.cpp serve.",
+    checkServer: (url) => samQwenFetchInfo(url), extractVoices: (response) => Object.keys(response.voices || {}),
+    renderExtraFieldsHtml: (settings) => `
+        <div class="samvoice-engine-settings-grid samvoice-qwen-instructions-row">
+            <label for="sam-qwen-instructions">Voice Instructions</label>
+            <textarea id="sam-qwen-instructions" rows="3" maxlength="600"
+                placeholder="Speak softly, with a tired and raspy voice."
+                title="Английская инструкция о характере речи. Поддерживается моделью 1.7B.">${G(settings.qwenInstructions || "")}</textarea>
+            <small>Только 1.7B. Сервер держит одну TTS-модель одновременно.</small>
+        </div>
+    `,
+    readExtraFieldsFromDialog: (dialog) => ({
+        qwenInstructions: String(dialog.find("#sam-qwen-instructions").val() || "").trim().slice(0, 600)
+    }),
+    applyExtraFieldsToDialog: (dialog, settings) => {
+        dialog.find("#sam-qwen-instructions").val(String(settings.qwenInstructions || "").slice(0, 600));
+    },
+    getServerUrlFromSettings: (settings) => settings.qwenServerUrl,
+    getVoiceFromSettings: (settings) => settings.qwenVoice
+});
+function samRenderQwen(settings) { return samQwenPanel.render(settings); }
+function samBindQwen(dialog, callbacks) { samQwenPanel.bind(dialog, callbacks); }
+function samCheckQwen(dialog, callbacks) { return samQwenPanel.checkFromDialog(dialog, callbacks); }
+function samReadQwen(dialog) { return samQwenPanel.readSettingsFromDialog(dialog); }
+function samApplyQwen(dialog, settings) { return samQwenPanel.applySettingsToDialog(dialog, settings); }
+//#endregion
 //#region scripts/ui/sessionPanel.js
 var za = 0;
 function Ba() {
@@ -5674,20 +5802,25 @@ async function Ja(e, t) {
 	await Ya(e, t);
 }
 async function Ya(e, t) {
-	let engine = e.find("#sam-engine").val(), silero = engine === "silero", id = silero ? "silero" : "piper";
-	let url = e.find(`#sam-${id}-url`).val()?.trim() || (silero ? "http://127.0.0.1:5051" : "http://127.0.0.1:5050");
-	let voice = Ra(e.find(`#sam-${id}-voice`).val()), label = silero ? "Silero" : "Piper";
-	X(e, "#sam-session-tts", `${label}...`, "warn"), X(e, "#sam-session-voice", voice || "Default", "warn");
-	try {
-		let response = await Ta(url);
-		if (t !== za) return;
-		X(e, "#sam-session-tts", `${label} онлайн (${Object.keys(response.voices || {}).length})`, "ok");
-		X(e, "#sam-session-voice", voice || "Default", voice ? "ok" : "warn");
-	} catch {
-		if (t !== za) return;
-		X(e, "#sam-session-tts", `${label} offline`, "error");
-		X(e, "#sam-session-voice", voice || "Default", "warn");
-	}
+    let engine = e.find("#sam-engine").val(), qwen = engine === "qwen";
+    let id = qwen ? "qwen" : engine === "silero" ? "silero" : "piper";
+    let defaults = { qwen: "http://127.0.0.1:8081", silero: "http://127.0.0.1:5051", piper: "http://127.0.0.1:5050" };
+    let url = e.find(`#sam-${id}-url`).val()?.trim() || defaults[id];
+    let voice = Ra(e.find(`#sam-${id}-voice`).val());
+    let label = qwen ? "Qwen" : id === "silero" ? "Silero" : "Piper";
+    X(e, "#sam-session-tts", `${label}...`, "warn");
+    X(e, "#sam-session-voice", voice || "Default", "warn");
+    try {
+        let result = qwen ? await samQwenFetchInfo(url) : await Ta(url);
+        if (t !== za) return;
+        X(e, "#sam-session-tts",
+            qwen ? `Qwen онлайн: ${result.model}` : `${label} онлайн (${Object.keys(result.voices || {}).length})`, "ok");
+        X(e, "#sam-session-voice", voice || "Default", voice ? "ok" : "warn");
+    } catch {
+        if (t !== za) return;
+        X(e, "#sam-session-tts", `${label} offline`, "error");
+        X(e, "#sam-session-voice", voice || "Default", "warn");
+    }
 }
 function Xa(e, t) {
 	let n = e.find("#sam-session-test-everyone");
@@ -6044,6 +6177,7 @@ function Do() {
                             <option value="sam" ${e.engine === "sam" ? "selected" : ""}>SAM</option>
                             <option value="piper" ${e.engine === "piper" ? "selected" : ""}>Piper</option>
                             <option value="silero" ${e.engine === "silero" ? "selected" : ""}>Silero</option>
+                            <option value="qwen" ${e.engine === "qwen" ? "selected" : ""}>Qwen3-TTS</option>
                         </select>
                     </label>
 
@@ -6105,6 +6239,7 @@ function Do() {
                     <div class="samvoice-engine-drawer">
                         ${Ma(e)}
                         ${samRenderSilero(e)}
+                        ${samRenderQwen(e)}
                         ${Qa(n)}
                     </div>
                 </aside>
@@ -6125,7 +6260,7 @@ function Oo(e) {
 	Va(t, No(t)), hi(t, {
 		getProfileData: () => ko(t),
 		applyProfile: (e) => Ao(t, e)
-	}), Ei(t), oo(t), Na(t, jo(t)), samBindSilero(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
+	}), Ei(t), oo(t), Na(t, jo(t)), samBindSilero(t, jo(t)), samBindQwen(t, jo(t)), $a(t), ia(t, Mo(t)), t.find("#sam-text").on("input", function() {
 		vo(t), Bo(t);
 	}).on("keydown", function(e) {
 		if (e.key === "Enter") {
@@ -6136,7 +6271,7 @@ function Oo(e) {
 			(e.ctrlKey || e.metaKey) && (e.preventDefault(), t.find("#sam-play-everyone").first?.click?.());
 		}
 	}), t.find("#sam-engine").on("change", function() {
-		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), Y(t, No(t));
+		Uo(t), vo(t), Bo(t), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), t.find("#sam-engine").val() === "qwen" && samCheckQwen(t, jo(t)), Y(t, No(t));
 	}), t.find("#sam-playback-mode").on("change", async function() {
 		await de(this.value);
 	}), t.find("#sam-stop-audio").off("click").on("click", async () => {
@@ -6171,7 +6306,7 @@ function Oo(e) {
 				Ho(t, !1);
 			}
 		}
-	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t));
+	}), Uo(t), vo(t), Bo(t), Ho(t, !1), t.find("#sam-engine").val() === "piper" && Fa(t, jo(t)), t.find("#sam-engine").val() === "silero" && samCheckSilero(t, jo(t)), t.find("#sam-engine").val() === "qwen" && samCheckQwen(t, jo(t));
 }
 function ko(e) {
 	let t = Ia(e);
@@ -6180,6 +6315,7 @@ function ko(e) {
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice,
 		...samReadSilero(e),
+		...samReadQwen(e),
 		...so(e),
 		samVoiceSettings: eo(e),
 		effects: q(e)
@@ -6189,7 +6325,7 @@ function Ao(e, t) {
 	e.find("#sam-engine").val(t.engine || "sam"), La(e, {
 		piperServerUrl: t.piperServerUrl,
 		piperVoice: t.piperVoice
-	}), samApplySilero(e, t), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), e.find("#sam-engine").val() === "silero" && samCheckSilero(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
+	}), samApplySilero(e, t), samApplyQwen(e, t), lo(e, t), Di(e, t.effects), to(e, t.samVoiceSettings), Uo(e), vo(e), e.find("#sam-engine").val() === "piper" && Fa(e, jo(e)), e.find("#sam-engine").val() === "silero" && samCheckSilero(e, jo(e)), e.find("#sam-engine").val() === "qwen" && samCheckQwen(e, jo(e)), Y(e, No(e)), ui.notifications.info(`Applied voice profile: ${t.name}`);
 }
 function jo(e) {
 	return {
@@ -6216,7 +6352,7 @@ function No(e) {
 }
 async function Po(e) {
 	let t = e.find("#sam-engine").val(), n = Ia(e).piperVoice || "";
-	return await Io(e, t === "silero" || t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
+	return await Io(e, t === "silero" || t === "qwen" || t === "piper" && !n.startsWith("en_") ? "Тест голоса" : "Voice test", {
 		saveToHistory: !1,
 		notification: "Generating test voice..."
 	});
@@ -6226,37 +6362,51 @@ async function Fo(e, t = {}) {
 	return n.length ? await Io(e, n, t) : null;
 }
 async function Io(e, t, n = {}) {
-	let r = e.find("#sam-engine").val(), i = q(e), a = Ia(e), b = samReadSilero(e), o = so(e), s = co(o), c = zo(e), l = Ro(e);
-	if (await de(c), await ce({
-		engine: r, piperServerUrl: a.piperServerUrl, piperVoice: a.piperVoice,
-		sileroServerUrl: b.sileroServerUrl, sileroVoice: b.sileroVoice, ...o
-	}), await ze(i), n.saveToHistory && await Ze(t), r === "piper" || r === "silero") {
-		let isSilero = r === "silero";
-		let speechText = isSilero ? t : _o({ engine: r, text: t, piperVoice: a.piperVoice });
-		return await Lo({
-			notification: n.notification || `Generating ${isSilero ? "Silero" : "Piper"} voice...`,
-			cancelLog: `SAM Voice: ${isSilero ? "Silero" : "Piper"} generation cancelled.`,
-			errorFallback: `${isSilero ? "Silero" : "Piper"} generation failed. Check local TTS server.`,
-			originalText: t, playbackMode: c,
-			speakerPortraitPlaybackSettings: s, profileLink: l,
-			generateFn: (signal) => isSilero ? samGenerateSilero({
-				text: speechText, sileroServerUrl: b.sileroServerUrl,
-				sileroVoice: b.sileroVoice, effects: i, signal
-			}) : Pa({
-				text: speechText, piperServerUrl: a.piperServerUrl,
-				piperVoice: a.piperVoice, effects: i, signal
-			})
-		});
-	}
-	let u = eo(e);
-	return await Je(u), {
-		engine: "sam", text: et(t), effects: i, playbackMode: c, ...u, ...s, ...l
-	};
+    // Start cancellation tracking before settings writes; Stop also covers preparation.
+    const generation = oi();
+    try {
+        let engine = e.find("#sam-engine").val(), effects = q(e);
+        let piper = Ia(e), silero = samReadSilero(e), qwen = samReadQwen(e);
+        let portrait = so(e), portraitSettings = co(portrait), playbackMode = zo(e), profile = Ro(e);
+        const speechText = lt(_o({ engine, text: t, piperVoice: piper.piperVoice }), engine === "sam" ? 800 : r);
+        await de(playbackMode);
+        await ce({
+            engine, piperServerUrl: piper.piperServerUrl, piperVoice: piper.piperVoice,
+            sileroServerUrl: silero.sileroServerUrl, sileroVoice: silero.sileroVoice,
+            qwenServerUrl: qwen.qwenServerUrl, qwenVoice: qwen.qwenVoice,
+            qwenInstructions: qwen.qwenInstructions, ...portrait
+        });
+        await ze(effects);
+        if (n.saveToHistory) await Ze(t);
+        if (!ci(generation.token)) return null;
+        if (engine === "piper" || engine === "silero" || engine === "qwen") {
+            let label = engine === "qwen" ? "Qwen" : engine === "silero" ? "Silero" : "Piper";
+            return await Lo({
+                generation,
+                notification: n.notification || `Generating ${label} voice...`,
+                cancelLog: `SAM Voice: ${label} generation cancelled.`,
+                errorFallback: `${label} generation failed. Check local TTS server.`,
+                originalText: t, playbackMode, speakerPortraitPlaybackSettings: portraitSettings,
+                profileLink: profile,
+                generateFn: (signal) => engine === "qwen"
+                    ? samQwenGenerate({ text: speechText, ...qwen, effects, signal })
+                    : engine === "silero"
+                    ? samGenerateSilero({ text: speechText, ...silero, effects, signal })
+                    : Pa({ text: speechText, ...piper, effects, signal })
+            });
+        }
+        let sam = eo(e);
+        await Je(sam);
+        return ci(generation.token) ? { engine: "sam", text: speechText, effects, playbackMode, ...sam, ...portraitSettings, ...profile } : null;
+    } finally {
+        li(generation.token);
+    }
 }
-async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s }) {
+async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s, generation }) {
 	ui.notifications.info(e);
-	let c = oi();
+	let c = generation || oi();
 	try {
+		if (!ci(c.token)) return null;
 		let e = await s(c.signal);
 		return ci(c.token) ? {
 			...e,
@@ -6266,7 +6416,12 @@ async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalTex
 			...o
 		} : null;
 	} catch (e) {
-		return fi(e) ? (console.info(t), null) : (console.error(e), ui.notifications.error(e?.message || n), null);
+		if (!ci(c.token) || fi(e)) { console.info(t); return null; }
+		const message = e?.name === "TimeoutError"
+			? "Сервер TTS не успел сгенерировать речь. Попробуйте более короткую реплику или проверьте сервер."
+			: e?.message || n;
+		console.error(e), ui.notifications.error(message);
+		return null;
 	} finally {
 		li(c.token);
 	}
@@ -6296,7 +6451,8 @@ function Ho(e, t, n = "Generating...") {
 	r.prop("disabled", !1), i.prop("disabled", t), a.prop("disabled", t || !wo()), i.find("span").text(t ? n : "Preview"), a.find("span").text(t ? n : "Play for All");
 }
 function Uo(e) {
-	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam", silero = t === "silero";
+	let t = e.find("#sam-engine").val(), n = t === "piper", r = t === "sam", silero = t === "silero", qwen = t === "qwen";
+	e.find("#sam-qwen-engine-details").toggle(qwen), e.find("#sam-qwen-settings").toggle(qwen), e.find("#sam-qwen-voice-row").toggle(qwen), e.find("#sam-qwen-status").toggle(qwen), e.find(".samvoice-qwen-instructions-row").toggle(qwen);
 	e.find("#sam-silero-engine-details").toggle(silero), e.find("#sam-silero-settings").toggle(silero), e.find("#sam-silero-voice-row").toggle(silero), e.find("#sam-silero-status").toggle(silero);
 	e.find("#sam-piper-engine-details").toggle(n), e.find("#sam-piper-settings").toggle(n), e.find("#sam-piper-voice-row").toggle(n), e.find("#sam-piper-status").toggle(n), e.find("#sam-presets-details").toggle(r), e.find("#sam-voice-settings-details").toggle(r);
 }

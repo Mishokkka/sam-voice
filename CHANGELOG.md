@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.4.3 (playback reliability)
+
+- Collect playback/Stop acknowledgements from each active remote client with a bounded wait; identify failed clients.
+- Reject playback and queue requests while WebAudio is locked; unlock only in gesture/Unlock handlers.
+- Prevent delayed playback if audio becomes suspended during decoding.
+- Cancel synthesis and request preparation from both the Stop button and the public API.
+- Preserve new queued speech when an earlier decoding operation finishes after Stop.
+- Validate text before synthesis, including Qwen, and show backend timeouts as errors.
+- Check audio signatures against declared MIME types before sending generated files.
+- Emit the correct Preview completion status and failures.
+- Restore a dependency-free source/build/test project and deterministic install ZIP packaging.
+- Return a clear unsupported-text error from both the SAM worker and its main-thread fallback.
+- Restrict validation workflow credentials and detect untracked generated assets.
+- Document the versioned Windows speech.cpp installer and invoke the executable through PATH.
+- Preserve the existing UI, profiles, effects and trusted-table sender behavior.
+
+## 1.4.2 (Qwen3-TTS)
+
+- Added independent Qwen3-TTS engine using `speech.cpp` OpenAI-compatible HTTP endpoint.
+- Added nine Qwen voices and persistent per-NPC Voice Instructions (only Qwen 1.7B).
+- Kept synchronized playback, audio effects, and existing SAM, Piper and Silero engines.
+- Added local-server setup and exact-origin CORS guidance for Foundry.
+
+
 ## 1.4.1 (Silero integration)
 
 - Added a separate Silero engine (Russian CPU-based TTS) alongside SAM and Piper.

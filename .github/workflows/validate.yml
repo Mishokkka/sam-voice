@@ -1,0 +1,25 @@
+name: Validate module
+on: [push, pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run package
+      - run: npm run test:silero
+      - name: Check committed build artifacts
+        run: |
+          status=$(git status --porcelain --untracked-files=all -- dist)
+          printf '%s\n' "$status"
+          test -z "$status"
