@@ -1,7 +1,7 @@
 {
   "id": "sam-voice",
   "title": "SAM Voice",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "socket": true,
   "compatibility": {
     "minimum": "13",
@@ -36,5 +36,5 @@
       "name": "Хозяин"
     }
   ],
-  "description": "GM-controlled real-time text-to-speech with SAM, Piper, synchronized client playback, voice profiles, and WebAudio effects."
+  "description": "GM-controlled real-time text-to-speech with SAM, Piper, Silero, Qwen3-TTS, synchronized client playback, voice profiles, and WebAudio effects."
 }
