@@ -1,5 +1,5 @@
 //#region scripts/constants.js
-var e = "sam-voice", t = ["sam", "piper", "silero"], n = [
+var e = "sam-voice", t = ["sam", "piper", "silero", "qwen"], n = [
 	"interrupt",
 	"queue",
 	"overlap"
@@ -563,12 +563,14 @@ function te() {
 		type: String,
 		default: "http://127.0.0.1:5051"
 	}), game.settings.register(e, "sileroVoice", {
-		name: "Silero Voice",
-		scope: "client",
-		config: !1,
-		type: String,
-		default: "xenia"
-	}), game.settings.register(e, "playbackMode", {
+        name: "Silero Voice", scope: "client", config: !1, type: String, default: "xenia"
+    }), game.settings.register(e, "qwenServerUrl", {
+        name: "Qwen3-TTS Server URL", scope: "client", config: !1, type: String, default: "http://127.0.0.1:8081"
+    }), game.settings.register(e, "qwenVoice", {
+        name: "Qwen3-TTS Voice", scope: "client", config: !1, type: String, default: "ryan"
+    }), game.settings.register(e, "qwenInstructions", {
+        name: "Qwen3-TTS Voice Instructions", scope: "client", config: !1, type: String, default: ""
+    }), game.settings.register(e, "playbackMode", {
 		name: "Playback Mode",
 		scope: "client",
 		config: !1,
@@ -733,6 +735,9 @@ function oe() {
 		piperVoice: String(game.settings.get("sam-voice", "piperVoice") || ""),
 		sileroServerUrl: samSileroUrl(game.settings.get(e, "sileroServerUrl")),
 		sileroVoice: String(game.settings.get(e, "sileroVoice") || "xenia"),
+		qwenServerUrl: samQwenUrl(game.settings.get(e, "qwenServerUrl")),
+		qwenVoice: String(game.settings.get(e, "qwenVoice") || "ryan"),
+		qwenInstructions: String(game.settings.get(e, "qwenInstructions") || ""),
 		speakerPortraitEnabled: game.settings.get(e, "speakerPortraitEnabled"),
 		speakerPortraitProfileId: game.settings.get(e, "speakerPortraitProfileId"),
 		speakerPortraitImageId: game.settings.get(e, "speakerPortraitImageId"),
@@ -744,7 +749,7 @@ function se() {
 }
 async function ce(e) {
 	let t = [T("engine", le(e.engine))];
-	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "sileroServerUrl" in e && t.push(T("sileroServerUrl", samSileroUrl(e.sileroServerUrl))), "sileroVoice" in e && t.push(T("sileroVoice", String(e.sileroVoice || "xenia").trim().slice(0, 160))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
+	"piperServerUrl" in e && t.push(T("piperServerUrl", fe(e.piperServerUrl))), "piperVoice" in e && t.push(T("piperVoice", String(e.piperVoice || "").trim().slice(0, 160))), "sileroServerUrl" in e && t.push(T("sileroServerUrl", samSileroUrl(e.sileroServerUrl))), "sileroVoice" in e && t.push(T("sileroVoice", String(e.sileroVoice || "xenia").trim().slice(0, 160))), "qwenServerUrl" in e && t.push(T("qwenServerUrl", samQwenUrl(e.qwenServerUrl))), "qwenVoice" in e && t.push(T("qwenVoice", String(e.qwenVoice || "ryan").trim().slice(0, 160))), "qwenInstructions" in e && t.push(T("qwenInstructions", String(e.qwenInstructions || "").trim().slice(0, 600))), "speakerPortraitEnabled" in e && t.push(T("speakerPortraitEnabled", e.speakerPortraitEnabled !== !1)), "speakerPortraitProfileId" in e && t.push(T("speakerPortraitProfileId", String(e.speakerPortraitProfileId || "").slice(0, 160))), "speakerPortraitImageId" in e && t.push(T("speakerPortraitImageId", String(e.speakerPortraitImageId || "").slice(0, 160))), await Promise.all(t);
 }
 function le(e) {
 	return t.includes(e) ? e : "sam";
@@ -761,8 +766,12 @@ function fe(e) {
 	catch { return "http://127.0.0.1:5050"; }
 }
 function samSileroUrl(e) {
-	try { return w(e, "http://127.0.0.1:5051"); }
-	catch { return "http://127.0.0.1:5051"; }
+    try { return w(e, "http://127.0.0.1:5051"); }
+    catch { return "http://127.0.0.1:5051"; }
+}
+function samQwenUrl(e) {
+    try { return w(e, "http://127.0.0.1:8081"); }
+    catch { return "http://127.0.0.1:8081"; }
 }
 async function T(t, n) {
 	game.settings.get("sam-voice", t) !== n && await game.settings.set(e, t, n);
@@ -827,6 +836,7 @@ function ve(e) {
 		let a = e?.sileroServerUrl, o = [];
 		if (r && !ie(r)) o.push({ profile: n, field: "piperServerUrl", url: String(r) });
 		if (a && !ie(a)) o.push({ profile: n, field: "sileroServerUrl", url: String(a) });
+		if (e?.qwenServerUrl && !ie(e.qwenServerUrl)) o.push({ profile: n, field: "qwenServerUrl", url: String(e.qwenServerUrl) });
 		return o;
 	});
 }
@@ -840,6 +850,9 @@ function ye(e = {}, t = {}) {
 		piperVoice: De(e.piperVoice, 160),
 		sileroServerUrl: Se(e.sileroServerUrl, t.allowRemote ?? se(), "http://127.0.0.1:5051"),
 		sileroVoice: De(e.sileroVoice || "xenia", 160),
+		qwenServerUrl: Se(e.qwenServerUrl, t.allowRemote ?? se(), "http://127.0.0.1:8081"),
+		qwenVoice: De(e.qwenVoice || "ryan", 160),
+		qwenInstructions: De(e.qwenInstructions, 600),
 		speakerPortraitEnabled: e.speakerPortraitEnabled !== !1,
 		speakerPortraitProfileId: De(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: De(e.speakerPortraitImageId, 160),
@@ -854,7 +867,7 @@ function be(e) {
 }
 function xe(e = {}) {
 	let t = { ...e };
-	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t.sileroServerUrl && !ie(t.sileroServerUrl) && delete t.sileroServerUrl, t;
+	return t.piperServerUrl && !ie(t.piperServerUrl) && delete t.piperServerUrl, t.sileroServerUrl && !ie(t.sileroServerUrl) && delete t.sileroServerUrl, t.qwenServerUrl && !ie(t.qwenServerUrl) && delete t.qwenServerUrl, t;
 }
 function Se(e, t, r = "http://127.0.0.1:5050") {
 	try { let n = w(e, r); return t || ie(n) ? n : r; }
@@ -1148,7 +1161,7 @@ function at(e, a = {}) {
 		speakerPortraitProfileId: k(e.speakerPortraitProfileId, 160),
 		speakerPortraitImageId: k(e.speakerPortraitImageId, 160)
 	};
-	return o === "sam" ? Object.assign(u, dt(e)) : (o === "piper" || o === "silero") && Object.assign(u, ft(e)), u;
+	return o === "sam" ? Object.assign(u, dt(e)) : (o === "piper" || o === "silero" || o === "qwen") && Object.assign(u, ft(e)), u;
 }
 function ot(e, t = a) {
 	let n = String(e || ""), r = n.match(/^data:([^;,]+);base64,([A-Za-z0-9+/]*={0,2})$/);
@@ -4037,7 +4050,7 @@ function R(e, t, n) {
 //#endregion
 //#region scripts/audio/audio.js
 var z = globalThis.AudioContext || globalThis.webkitAudioContext;
-nt("sam", Pn), nt("piper", yt), nt("silero", yt);
+nt("sam", Pn), nt("piper", yt), nt("silero", yt), nt("qwen", yt);
 var B, hr, V, gr = null, _r = !1, vr = !1, yr = null, br = null, xr = null, H = /* @__PURE__ */ new Set(), U = [], Sr = !1, W = 0;
 function Cr() {
 	if (wr(), B && B.state !== "closed") return B;
