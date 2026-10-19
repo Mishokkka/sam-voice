@@ -41,6 +41,17 @@ The tested environment used these packages:
 - Binds **only** to `127.0.0.1`; no model weights are included in the Foundry module.
 - Voices: `aidar`, `baya`, `kseniya`, `xenia`, `eugene`.
 
+## Security regression tests
+
+The HTTP allowlist can be tested without model weights (a fake model generates a small WAV):
+
+```powershell
+cd path\to\sam-voice
+py -3.11 -m unittest discover -s tools/silero -p "test_*.py" -v
+```
+
+Checks cover allowed/blocked preflight, blocked cross-origin speech, successful WAV replies and local CLI requests.
+
 ## Limits and caveats
 
 - Maximum 1,000 characters per request and 4 MiB WAV response (shared playback transport limit). Split long text into shorter phrases.
