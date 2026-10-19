@@ -1,0 +1,14 @@
+{
+  "name": "sam-voice",
+  "version": "1.4.3",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "test": "node tests/regression.cjs",
+    "validate": "npm run build && node --check dist/samvoice.js && node --check src/samWorker.js && npm test",
+    "test:silero": "python -B -m unittest discover -s tools/silero -p test_server.py -v",
+    "package": "npm run validate && python tools/package.py"
+  }
+}

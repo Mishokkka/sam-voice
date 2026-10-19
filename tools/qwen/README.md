@@ -52,4 +52,4 @@ This integration was designed for [speech.cpp](https://github.com/nyosegawa/spee
 
 ### Testing and maintenance
 
-The bundle `dist/samvoice.js` contains this integration, so all Foundry clients must load the modified module. Testing in a real Foundry session remains required before merging. The repository presently publishes the compiled JS; any future rebuild from older local sources must port the Qwen changes or the modifications will be overwritten.
+The bundle `dist/samvoice.js` contains this integration, so all Foundry clients must reload the updated module. Testing in a real Foundry session remains required before merging. Edit `src/samvoice.js` and run `npm run validate`; the build includes Qwen and generates the runtime bundle and SAM Worker. `npm run package` produces a ready-to-install ZIP in `releases/` (Python 3 required).
