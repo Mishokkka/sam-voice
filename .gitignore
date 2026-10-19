@@ -1,4 +1,5 @@
 node_modules/
+test-results/
 releases/
 __pycache__/
 *.pyc

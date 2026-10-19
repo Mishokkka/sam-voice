@@ -3824,11 +3824,13 @@ function Wn(e) {
 	}
 	return t.chorus.enabled && (n = Math.max(n, .35)), R(n, 0, 12);
 }
-function Gn({ audioContext: e, source: t, effects: n, noiseDuration: r = 0, trackNode: i, masterGain: a }) {
+function Gn({ audioContext: e, source: t, effects: n, noiseDuration: r = 0, trackNode: i, masterGain: a, bufferCache }) {
 	let o = u(n);
+	let cacheIndex = 0;
+	const cachedBuffer = create => bufferCache ? (bufferCache[cacheIndex++] ??= create()) : create();
 	Kn(e, t, o, i);
 	let s = t;
-	o.formant.enabled && (s = qn(e, s, o.formant, i)), o.equalizer.enabled && (s = Jn(e, s, o.equalizer, i)), o.radio.enabled && (s = Yn(e, s, o.radio, i)), o.telephone.enabled && (s = Xn(e, s, o.telephone, i)), o.megaphone.enabled && (s = Zn(e, s, o.megaphone, i)), o.demon.enabled && (s = Qn(e, s, o.demon, i)), o.distortion.enabled && (s = $n(e, s, o.distortion, i)), o.crusher.enabled && (s = er(e, s, o.crusher, i)), o.robot.enabled && (s = tr(e, s, o.robot, i)), o.tremolo.enabled && (s = nr(e, s, o.tremolo, i)), s.connect(a), o.chorus.enabled && rr(e, s, o.chorus, i, a), o.echo.enabled && ir(e, s, o.echo, i, a), o.reverb.enabled && ar(e, s, o.reverb, i, a), o.specter.enabled && or(e, s, o.specter, i, a), sr(e, o, r, i, a);
+	o.formant.enabled && (s = qn(e, s, o.formant, i)), o.equalizer.enabled && (s = Jn(e, s, o.equalizer, i)), o.radio.enabled && (s = Yn(e, s, o.radio, i)), o.telephone.enabled && (s = Xn(e, s, o.telephone, i)), o.megaphone.enabled && (s = Zn(e, s, o.megaphone, i)), o.demon.enabled && (s = Qn(e, s, o.demon, i)), o.distortion.enabled && (s = $n(e, s, o.distortion, i)), o.crusher.enabled && (s = er(e, s, o.crusher, i)), o.robot.enabled && (s = tr(e, s, o.robot, i)), o.tremolo.enabled && (s = nr(e, s, o.tremolo, i)), s.connect(a), o.chorus.enabled && rr(e, s, o.chorus, i, a), o.echo.enabled && ir(e, s, o.echo, i, a), o.reverb.enabled && ar(e, s, o.reverb, i, a, cachedBuffer), o.specter.enabled && or(e, s, o.specter, i, a, cachedBuffer), sr(e, o, r, i, a, cachedBuffer);
 }
 function Kn(e, t, n, r) {
 	if (!n.vibrato.enabled) return;
@@ -3944,25 +3946,25 @@ function ir(e, t, n, r, i) {
 	let c = r(e.createGain());
 	c.gain.value = R(L(n, "mix") / 100 * .72, 0, .82), t.connect(a), a.connect(s).connect(c).connect(i), a.connect(o).connect(a);
 }
-function ar(e, t, n, r, i) {
+function ar(e, t, n, r, i, cachedBuffer) {
 	let a = r(e.createConvolver());
-	a.buffer = dr(e, L(n, "size"), L(n, "decay"));
+	a.buffer = cachedBuffer(() => dr(e, L(n, "size"), L(n, "decay")));
 	let o = r(e.createBiquadFilter());
 	o.type = "lowpass", o.frequency.value = 1200 + (1 - L(n, "damping") / 100) * 7600;
 	let s = r(e.createGain());
 	s.gain.value = R(L(n, "mix") / 100 * .72, 0, .86), t.connect(a).connect(o).connect(s).connect(i);
 }
-function or(e, t, n, r, i) {
+function or(e, t, n, r, i, cachedBuffer) {
 	let a = L(n, "mix") / 100, o = L(n, "delay"), s = L(n, "drift") / 100, c = L(n, "shimmer") / 100, l = ur(e, r, o / 1e3, .004 + s * .018, .12 + s * 1.4), u = r(e.createBiquadFilter());
 	u.type = "highpass", u.frequency.value = 520 + c * 1400;
 	let d = r(e.createBiquadFilter());
 	d.type = "peaking", d.frequency.value = 2200 + c * 2200, d.Q.value = 1.4 + c * 2.2, d.gain.value = 2 + c * 8;
 	let f = r(e.createConvolver());
-	f.buffer = dr(e, 1.2 + c * 3.2, 1.8 + s * 3.2);
+	f.buffer = cachedBuffer(() => dr(e, 1.2 + c * 3.2, 1.8 + s * 3.2));
 	let p = r(e.createGain());
 	p.gain.value = R(a * .58, 0, .7), t.connect(l.input), l.output.connect(u).connect(d).connect(f).connect(p).connect(i);
 }
-function sr(e, t, n, r, i) {
+function sr(e, t, n, r, i, cachedBuffer) {
 	let a = R(n || .25, .15, 18);
 	if (t.radio.enabled) {
 		let n = I(t, "radio", "static") / 100;
@@ -3971,21 +3973,26 @@ function sr(e, t, n, r, i) {
 			tone: .62,
 			crackle: .35,
 			duration: a
-		}, r, i);
+		}, r, i, cachedBuffer);
 	}
 	t.noise.enabled && cr(e, {
 		amount: I(t, "noise", "amount") / 100 * .18,
 		tone: I(t, "noise", "tone") / 100,
 		crackle: I(t, "noise", "crackle") / 100,
 		duration: a
-	}, r, i);
+	}, r, i, cachedBuffer);
 }
-function cr(e, t, n, r) {
-	let i = R(t.duration, .1, 20), a = e.sampleRate, o = Math.max(1, Math.floor(a * i)), s = e.createBuffer(1, o, a), c = s.getChannelData(0), l = 0;
-	for (let e = 0; e < o; e++) {
-		let n = Math.random() * 2 - 1, r = Math.random() < t.crackle * .018 ? (Math.random() * 2 - 1) * (.7 + t.crackle * 1.7) : 0;
-		l = l * (.92 - t.tone * .42) + n * (.08 + t.tone * .42), c[e] = R(l + r, -1, 1);
-	}
+function cr(e, t, n, r, cachedBuffer) {
+	let i = R(t.duration, .1, 20), a = e.sampleRate, o = Math.max(1, Math.floor(a * i));
+	const s = cachedBuffer(() => {
+		const buffer = e.createBuffer(1, o, a), c = buffer.getChannelData(0);
+		let l = 0;
+		for (let frame = 0; frame < o; frame++) {
+			let n = Math.random() * 2 - 1, r = Math.random() < t.crackle * .018 ? (Math.random() * 2 - 1) * (.7 + t.crackle * 1.7) : 0;
+			l = l * (.92 - t.tone * .42) + n * (.08 + t.tone * .42), c[frame] = R(l + r, -1, 1);
+		}
+		return buffer;
+	});
 	let u = n(e.createBufferSource());
 	u.buffer = s;
 	let d = n(e.createBiquadFilter());
@@ -4050,6 +4057,131 @@ function R(e, t, n) {
 	return Math.min(Math.max(e, t), n);
 }
 //#endregion
+//#region scripts/audio/export.js
+// Keep only the last phrase that actually started on this GM's client.
+// Raw synthesis and random effect buffers are reused; export never calls a TTS server.
+var samLastExport = null, samExportBusy = false;
+function samConfigureCompressor(node) {
+	node.threshold.value = -14;
+	node.knee.value = 18;
+	node.ratio.value = 10;
+	node.attack.value = .003;
+	node.release.value = .18;
+	return node;
+}
+function samRememberPlayback(buffer, request, effects, effectBuffers, sampleRate, masterGain) {
+	if (!game.user?.isGM) return;
+	samLastExport = {
+		buffer, effects: Hn(effects), effectBuffers: effectBuffers.slice(), sampleRate, masterGain,
+		requestId: request.requestId, engine: request.engine,
+		text: String(request.originalText || request.text || "").trim(),
+		profileName: String(request.profileName || ""), savedAt: Date.now()
+	};
+	samRefreshExportControls();
+}
+function samExportFilename(phrase) {
+	const clean = value => String(value || "").normalize("NFKC")
+		.replace(/[<>:"/\\|?*\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().replace(/[. ]+$/g, "");
+	const label = clean([phrase.profileName, phrase.text].filter(Boolean).join(" - ")).slice(0, 72).replace(/[. ]+$/g, "");
+	return `sam-voice-${clean(phrase.engine) || "voice"}-${label || "phrase"}-${phrase.savedAt}.wav`;
+}
+function samEncodeWav(buffer) {
+	const channels = buffer.numberOfChannels, frames = buffer.length, rate = buffer.sampleRate;
+	if (!Number.isInteger(channels) || channels < 1 || channels > 2 || !Number.isInteger(frames) || frames < 1 || !Number.isFinite(rate)) throw Error("Некорректный звук для экспорта.");
+	const bytes = frames * channels * 2;
+	if (bytes > 128 * 1024 * 1024) throw Error("Реплика слишком длинная для экспорта в WAV.");
+	const data = new ArrayBuffer(44 + bytes), view = new DataView(data);
+	const text = (offset, value) => { for (let i = 0; i < value.length; i++) view.setUint8(offset + i, value.charCodeAt(i)); };
+	text(0, "RIFF"); view.setUint32(4, 36 + bytes, true); text(8, "WAVE");
+	text(12, "fmt "); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+	view.setUint16(22, channels, true); view.setUint32(24, rate, true);
+	view.setUint32(28, rate * channels * 2, true); view.setUint16(32, channels * 2, true);
+	view.setUint16(34, 16, true); text(36, "data"); view.setUint32(40, bytes, true);
+	const samples = Array.from({ length: channels }, (_, channel) => buffer.getChannelData(channel));
+	let offset = 44;
+	for (let frame = 0; frame < frames; frame++) for (let channel = 0; channel < channels; channel++) {
+		const value = samples[channel][frame], clamped = Number.isFinite(value) ? R(value, -1, 1) : 0;
+		view.setInt16(offset, Math.round(clamped * (clamped < 0 ? 32768 : 32767)), true);
+		offset += 2;
+	}
+	return new Blob([data], { type: "audio/wav" });
+}
+async function samRenderExport(phrase) {
+	if (phrase.wav) return phrase.wav;
+	const OfflineContext = globalThis.OfflineAudioContext || globalThis.webkitOfflineAudioContext;
+	if (!OfflineContext) throw Error("Этот браузер не поддерживает экспорт звука с эффектами.");
+	const rate = Un(phrase.effects), duration = phrase.buffer.duration / rate + Wn(phrase.effects);
+	// Include the output compressor's look-ahead, and bound offline-render memory.
+	const frames = Math.ceil((duration + .05) * phrase.sampleRate);
+	if (!Number.isSafeInteger(frames) || frames < 1 || frames * 2 * 4 > 128 * 1024 * 1024) throw Error("Реплика слишком длинная для экспорта в WAV.");
+	const context = new OfflineContext(2, frames, phrase.sampleRate), nodes = [];
+	const trackNode = node => (nodes.push(node), node);
+	try {
+		const source = trackNode(context.createBufferSource());
+		source.buffer = phrase.buffer;
+		source.playbackRate.value = rate;
+		const master = trackNode(context.createGain());
+		master.gain.value = phrase.masterGain;
+		const compressor = samConfigureCompressor(trackNode(context.createDynamicsCompressor()));
+		master.connect(compressor).connect(context.destination);
+		Gn({ audioContext: context, source, effects: phrase.effects, noiseDuration: duration,
+			trackNode, masterGain: master, bufferCache: phrase.effectBuffers.slice() });
+		source.start(0);
+		phrase.wav = samEncodeWav(await context.startRendering());
+		return phrase.wav;
+	} finally {
+		for (const node of nodes) {
+			try { node.stop?.(); } catch {}
+			try { node.disconnect(); } catch {}
+		}
+	}
+}
+async function samDownloadLastPhrase() {
+	if (!game.user?.isGM) throw Error("Экспорт реплики доступен ведущему.");
+	if (samExportBusy) return;
+	const phrase = samLastExport;
+	if (!phrase) throw Error("Сначала прослушайте реплику через Preview или Play for All.");
+	samExportBusy = true;
+	samRefreshExportControls();
+	try {
+		const blob = await samRenderExport(phrase), filename = samExportFilename(phrase);
+		const url = URL.createObjectURL(blob), link = document.createElement("a");
+		try {
+			link.href = url; link.download = filename; link.hidden = true;
+			document.body.append(link);
+			link.click();
+		} finally {
+			link.remove();
+			// Do not revoke until the browser has had time to consume the download.
+			globalThis.setTimeout(() => URL.revokeObjectURL(url), 60000);
+		}
+		return { filename, requestId: phrase.requestId, sizeBytes: blob.size };
+	} finally {
+		samExportBusy = false;
+		samRefreshExportControls();
+	}
+}
+function samRefreshExportControls(root = globalThis.document) {
+	const button = root?.querySelector?.("#sam-export-last"), label = root?.querySelector?.("#sam-export-status");
+	if (button) {
+		button.disabled = !samLastExport || samExportBusy;
+		const caption = button.querySelector("span");
+		if (caption) caption.textContent = samExportBusy ? "Сохранение…" : "Скачать WAV";
+	}
+	if (label) {
+		label.textContent = samLastExport ? `Последняя: ${samLastExport.text}` : "Сначала прослушайте реплику";
+		label.title = samLastExport?.text || "Запись хранится до следующей воспроизведённой реплики или перезагрузки страницы.";
+	}
+}
+function samBindExportControls(root) {
+	const button = root?.querySelector?.("#sam-export-last");
+	if (button) button.onclick = () => samDownloadLastPhrase().catch(error => {
+		console.error("SAM Voice: export failed", error);
+		ui.notifications.error(error?.message || "Не удалось сохранить реплику.");
+	});
+	samRefreshExportControls(root);
+}
+//#endregion
 //#region scripts/audio/audio.js
 var z = globalThis.AudioContext || globalThis.webkitAudioContext;
 nt("sam", Pn), nt("piper", yt), nt("silero", yt), nt("qwen", yt);
@@ -4057,7 +4189,7 @@ var B, hr, V, gr = null, _r = !1, vr = !1, yr = null, br = null, xr = null, H = 
 function Cr() {
 	if (wr(), B && B.state !== "closed") return B;
 	if (!z) throw new S(x.AUDIO_UNSUPPORTED, "WebAudio AudioContext is not supported in this browser.");
-	return B = new z(), hr = B.createGain(), hr.gain.value = 1, V = B.createDynamicsCompressor(), V.threshold.value = -14, V.knee.value = 18, V.ratio.value = 10, V.attack.value = .003, V.release.value = .18, hr.connect(V).connect(B.destination), B;
+	return B = new z(), hr = B.createGain(), hr.gain.value = 1, V = samConfigureCompressor(B.createDynamicsCompressor()), hr.connect(V).connect(B.destination), B;
 }
 function wr() {
 	if (_r || !globalThis.document) return;
@@ -4226,6 +4358,7 @@ function Rr(e, t, n) {
 	let c = Un(i);
 	r.playbackRate.value = c;
 	let l = Wn(i), u = e.duration / c, d = u + l, f = (e) => (s.nodes.push(e), e);
+	const effectBuffers = [];
 	try {
 		Gn({
 			audioContext: B,
@@ -4233,7 +4366,8 @@ function Rr(e, t, n) {
 			effects: i,
 			noiseDuration: d,
 			trackNode: f,
-			masterGain: hr
+			masterGain: hr,
+			bufferCache: effectBuffers
 		}), r.onended = () => {
 			if (l > 0) {
 				s.cleanupTimer = globalThis.setTimeout(() => {
@@ -4242,7 +4376,11 @@ function Rr(e, t, n) {
 				return;
 			}
 			Br(s), H.delete(s), zr(t);
-		}, r.start(), Fr(t), globalThis.Hooks?.callAll?.("samVoice.playbackStarted", {
+		}, r.start(), Fr(t);
+		// Export must never turn successful playback into an error.
+		try { samRememberPlayback(e, t, i, effectBuffers, B.sampleRate, hr.gain.value); }
+		catch (error) { console.warn("SAM Voice: could not retain phrase for export", error); }
+		globalThis.Hooks?.callAll?.("samVoice.playbackStarted", {
 			requestId: t.requestId,
 			engine: t.engine,
 			duration: u,
@@ -6231,6 +6369,13 @@ function Do() {
                             <span>Play for All</span>
                         </button>
                     </div>
+                    <div class="samvoice-export-row">
+                        <span id="sam-export-status">Сначала прослушайте реплику</span>
+                        <button type="button" id="sam-export-last" class="samvoice-mini-button" disabled
+                            title="Скачать последнюю воспроизведённую реплику целиком, с эффектами, без повторной генерации.">
+                            <i class="fas fa-download" aria-hidden="true"></i><span>Скачать WAV</span>
+                        </button>
+                    </div>
                 </main>
 
                 <aside class="samvoice-inspector" aria-label="Speaker and quick engine controls">
@@ -6257,6 +6402,7 @@ function Do() {
 }
 function Oo(e) {
 	let t = Zr(e);
+	samBindExportControls(t.first);
 	Va(t, No(t)), hi(t, {
 		getProfileData: () => ko(t),
 		applyProfile: (e) => Ao(t, e)
@@ -6397,7 +6543,7 @@ async function Io(e, t, n = {}) {
         }
         let sam = eo(e);
         await Je(sam);
-        return ci(generation.token) ? { engine: "sam", text: speechText, effects, playbackMode, ...sam, ...portraitSettings, ...profile } : null;
+		return ci(generation.token) ? { engine: "sam", text: speechText, originalText: t, effects, playbackMode, ...sam, ...portraitSettings, ...profile } : null;
     } finally {
         li(generation.token);
     }
