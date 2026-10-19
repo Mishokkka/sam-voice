@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.3 (playback reliability)
+
+- Collect playback/Stop acknowledgements from each active remote client with a bounded wait; identify failed clients.
+- Reject playback and queue requests while WebAudio is locked; unlock only in gesture/Unlock handlers.
+- Prevent delayed playback if audio becomes suspended during decoding.
+- Cancel synthesis and request preparation from both the Stop button and the public API.
+- Preserve new queued speech when an earlier decoding operation finishes after Stop.
+- Validate text before synthesis, including Qwen, and show backend timeouts as errors.
+- Check audio signatures against declared MIME types before sending generated files.
+- Emit the correct Preview completion status and failures.
+- Restore a dependency-free source/build/test project and deterministic install ZIP packaging.
+- Preserve the existing UI, profiles, effects and trusted-table sender behavior.
+
 ## 1.4.2 (Qwen3-TTS)
 
 - Added independent Qwen3-TTS engine using `speech.cpp` OpenAI-compatible HTTP endpoint.

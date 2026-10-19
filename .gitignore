@@ -1,0 +1,4 @@
+node_modules/
+releases/
+__pycache__/
+*.pyc

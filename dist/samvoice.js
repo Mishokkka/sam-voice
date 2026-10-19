@@ -3755,7 +3755,7 @@ function In() {
 function Ln() {
 	return F || (F = new Worker(new URL(
 		/* @vite-ignore */
-		"" + new URL("assets/samWorker-CX52Kgt8.js", import.meta.url).href,
+		"" + new URL("assets/samWorker-f92368443556.js", import.meta.url).href,
 		"" + import.meta.url
 	), {
 		type: "module",
@@ -4087,13 +4087,14 @@ async function Dr(e) {
 	} catch (t) {
 		return Hr(e, t, "rejected");
 	}
-	globalThis.Hooks?.callAll?.("samVoice.speechStarted", t), globalThis.Hooks?.callAll?.("samVoice.speechReceived", {
-		requestId: t.requestId,
-		engine: t.engine,
-		scope: t.scope
-	});
 	let n = Wr(t.playbackMode);
 	try {
+		// Receiving speech never waits for a future user gesture, including in queue mode.
+		samRequireRunningAudio();
+		globalThis.Hooks?.callAll?.("samVoice.speechStarted", t);
+		globalThis.Hooks?.callAll?.("samVoice.speechReceived", {
+			requestId: t.requestId, engine: t.engine, scope: t.scope
+		});
 		if (n === "interrupt") return kr(), (await Pr(t)).result;
 		if (n === "queue") {
 			if (U.length >= 20) throw new S(x.QUEUE_FULL, "Playback queue is full (20 entries).");
@@ -4128,6 +4129,7 @@ function Ar() {
 	H.clear();
 }
 async function jr(e = {}) {
+	si();
 	let t = !!e?.hard;
 	if (W += 1, U.length = 0, Ar(), globalThis.Hooks?.callAll?.("samVoice.speechStopped", { hard: t }), !t) return Ur(!1);
 	let n = B;
@@ -4156,19 +4158,18 @@ async function Nr() {
 						error: C(t)
 					});
 				}
-				if (t !== W) {
-					U.length = 0;
-					break;
-				}
+				// Stop already removed the old queue. Keep any newly queued requests.
+				if (t !== W) break;
 			}
 		} finally {
 			Sr = !1;
+			if (U.length) void Nr();
 		}
 	}
 }
 async function Pr(e) {
 	let t = W;
-	if (await Lr(), t !== W) throw new S(x.PLAYBACK_CANCELLED, "Playback was cancelled before synthesis.");
+	samRequireRunningAudio();
 	let n = await rt(e.engine).createAudioBuffer({
 		request: e,
 		audioContext: B,
@@ -4191,16 +4192,24 @@ function Ir(e, t = {}) {
 	};
 }
 async function Lr() {
-	if ((!B || B.state === "closed") && Cr(), B.state === "suspended") try {
-		await B.resume();
-	} catch (e) {
-		throw new S(x.AUDIO_LOCKED, "Browser audio is locked. Click Unlock on this client before shared playback.", { cause: e?.message || String(e) });
+	// Only gesture/unlock handlers call resume. A bounded wait lets the next gesture retry.
+	const context = Cr();
+	if (context.state === "suspended") try {
+		await Yr(context.resume(), 1500, "Audio unlock timed out.");
+	} catch (error) {
+		throw new S(x.AUDIO_LOCKED, "Browser audio is locked. Click Unlock on this client before shared playback.", { cause: error?.message || String(error) });
 	}
-	if (B.state !== "running") throw new S(x.AUDIO_LOCKED, `Browser audio is not running (${B.state}). Click Unlock on this client.`, { state: B.state });
-	return B;
+	if (context !== B) throw new S(x.PLAYBACK_CANCELLED, "Audio was reset while unlocking.");
+	return samRequireRunningAudio();
+}
+function samRequireRunningAudio() {
+	const context = Cr();
+	if (context.state !== "running") throw new S(x.AUDIO_LOCKED, `Browser audio is not running (${context.state}). Click Unlock on this client.`, { state: context.state });
+	return context;
 }
 function Rr(e, t, n) {
 	if (n !== W) throw new S(x.PLAYBACK_CANCELLED, "Playback was cancelled before start.");
+	samRequireRunningAudio();
 	let r = B.createBufferSource(), i = Hn(t.effects), a, o = new Promise((e) => {
 		a = e;
 	}), s = {
@@ -4323,11 +4332,10 @@ var Gr = class {
 			...t,
 			scope: "local"
 		});
-		let n = await this.playLocal(t);
-		return this.#i(t, {
-			local: n,
-			remote: []
-		}, "local"), {
+		let n;
+		try { n = await this.playLocal(t); }
+		catch (error) { n = qr(t, error, "local"); }
+		const result = {
 			ok: !!n?.ok,
 			requestId: t.requestId,
 			scope: "local",
@@ -4335,6 +4343,8 @@ var Gr = class {
 			remote: [],
 			failures: n?.ok ? [] : [n]
 		};
+		this.#i(t, result, "local");
+		return result;
 	}
 	async speak(e) {
 		this.#r(), this.#n();
@@ -4358,11 +4368,14 @@ var Gr = class {
 		return this.#i(t, u, "everyone"), u;
 	}
 	async stop({ hard: e = !1 } = {}) {
+		si();
 		let t = this.stopLocal({ hard: e }), n = this.getSocket(), r = this.isSocketReady() && n ? this.#t(n, "stopAllAudio", { hard: e }) : Promise.resolve([]), [i, a] = await Promise.allSettled([t, r]);
+		const local = i.status === "fulfilled" ? i.value : qr({}, i.reason, "local");
+		const remote = a.status === "fulfilled" ? a.value : [qr({}, a.reason, "remote")];
 		return {
-			ok: i.status === "fulfilled" && a.status === "fulfilled",
-			local: i.status === "fulfilled" ? i.value : C(i.reason),
-			remote: a.status === "fulfilled" ? a.value : C(a.reason)
+			ok: !!local?.ok && remote.every(result => result.ok),
+			local, remote,
+			failures: [local, ...remote].filter(result => !result?.ok)
 		};
 	}
 	async collectClientAudioStatuses() {
@@ -4388,7 +4401,22 @@ var Gr = class {
 		return e.id === game.user.id ? Jr(e, !0, this.getLocalStatus()) : (this.#n(), Jr(e, !1, await Yr(this.getSocket().executeAsUser("getClientAudioStatus", e.id), o, `Audio status timed out for ${e.name}.`)));
 	}
 	async #t(e, t, n) {
-		return typeof e.executeForOthers == "function" ? await e.executeForOthers(t, n) : await e.executeForEveryone(t, n);
+		// socketlib broadcasts are fire-and-forget; only executeAsUser returns the result.
+		const recipients = Array.from(game.users || []).filter(user => user.active && user.id !== game.user.id);
+		const timeout = t === "playVoice" ? 30000 : o;
+		return await Promise.all(recipients.map(async user => {
+			let result;
+			try {
+				result = await Yr(e.executeAsUser(t, user.id, n), timeout, "Client did not respond in time.");
+				if (!result || typeof result.ok !== "boolean") throw new S(x.PLAYBACK_FAILED, "Client returned no playback result. Reload Foundry on this client.");
+			} catch (error) {
+				result = qr(n, error, user.id);
+			}
+			return {
+				...result, userId: user.id, userName: user.name,
+				...(!result.ok ? { error: { ...result.error, message: `${user.name}: ${result.error?.message || "Playback failed."}` } } : {})
+			};
+		}));
 	}
 	#n() {
 		if (!this.isSocketReady() || !this.getSocket()) throw new S(x.SOCKET_OFFLINE, "SAM Voice socket is not ready yet.");
@@ -4637,7 +4665,7 @@ function di() {
 	return ai;
 }
 function fi(e) {
-	return e?.name === "AbortError" || e?.name === "TimeoutError";
+	return e?.name === "AbortError";
 }
 //#endregion
 //#region scripts/ui/html.js
@@ -5320,10 +5348,15 @@ function ha(e, t = ca) {
 }
 async function ga(e, t) {
 	let n = va(t), r = va(e?.type);
-	for (let e of [n, r]) if (e.startsWith("audio/")) return la.get(e) || e;
 	let i = await _a(e);
-	if (i) return i;
-	throw new S(x.UNSUPPORTED_AUDIO_MIME, `TTS backend did not return recognizable audio data (${n || r || "unknown MIME"}).`);
+	if (!i) throw new S(x.UNSUPPORTED_AUDIO_MIME, `TTS backend did not return recognizable audio data (${n || r || "unknown MIME"}).`);
+	for (const declared of [n, r]) {
+		if (!declared.startsWith("audio/")) continue;
+		const mime = la.get(declared) || declared;
+		if (!it.has(mime)) throw new S(x.UNSUPPORTED_AUDIO_MIME, `Unsupported generated audio MIME type: ${mime}.`);
+		if (mime !== i) throw new S(x.INVALID_AUDIO_DATA, `Audio signature does not match ${mime} (detected ${i}).`);
+	}
+	return i;
 }
 async function _a(e) {
 	let t = new Uint8Array(await e.slice(0, 16).arrayBuffer()), n = String.fromCharCode(...t);
@@ -5627,6 +5660,7 @@ async function samQwenFetchInfo(url, { signal } = {}) {
     }
 }
 async function samQwenGenerate({ text, qwenServerUrl, qwenVoice, qwenInstructions, effects, signal }) {
+    text = lt(text, r);
     let server = ae(ua(qwenServerUrl, "http://127.0.0.1:8081"), se());
     let voice = samQwenVoices.includes(qwenVoice) ? qwenVoice : "ryan";
     let instructions = String(qwenInstructions || "").trim().slice(0, 600);
@@ -6326,42 +6360,51 @@ async function Fo(e, t = {}) {
 	return n.length ? await Io(e, n, t) : null;
 }
 async function Io(e, t, n = {}) {
-    let engine = e.find("#sam-engine").val(), effects = q(e);
-    let piper = Ia(e), silero = samReadSilero(e), qwen = samReadQwen(e);
-    let portrait = so(e), portraitSettings = co(portrait), playbackMode = zo(e), profile = Ro(e);
-    await de(playbackMode);
-    await ce({
-        engine, piperServerUrl: piper.piperServerUrl, piperVoice: piper.piperVoice,
-        sileroServerUrl: silero.sileroServerUrl, sileroVoice: silero.sileroVoice,
-        qwenServerUrl: qwen.qwenServerUrl, qwenVoice: qwen.qwenVoice,
-        qwenInstructions: qwen.qwenInstructions, ...portrait
-    });
-    await ze(effects);
-    if (n.saveToHistory) await Ze(t);
-    if (engine === "piper" || engine === "silero" || engine === "qwen") {
-        let speechText = engine === "piper" ? _o({ engine, text: t, piperVoice: piper.piperVoice }) : t;
-        let label = engine === "qwen" ? "Qwen" : engine === "silero" ? "Silero" : "Piper";
-        return await Lo({
-            notification: n.notification || `Generating ${label} voice...`,
-            cancelLog: `SAM Voice: ${label} generation cancelled.`,
-            errorFallback: `${label} generation failed. Check local TTS server.`,
-            originalText: t, playbackMode, speakerPortraitPlaybackSettings: portraitSettings,
-            profileLink: profile,
-            generateFn: (signal) => engine === "qwen"
-                ? samQwenGenerate({ text: speechText, ...qwen, effects, signal })
-                : engine === "silero"
-                ? samGenerateSilero({ text: speechText, ...silero, effects, signal })
-                : Pa({ text: speechText, ...piper, effects, signal })
+    // Start cancellation tracking before settings writes; Stop also covers preparation.
+    const generation = oi();
+    try {
+        let engine = e.find("#sam-engine").val(), effects = q(e);
+        let piper = Ia(e), silero = samReadSilero(e), qwen = samReadQwen(e);
+        let portrait = so(e), portraitSettings = co(portrait), playbackMode = zo(e), profile = Ro(e);
+        const speechText = lt(_o({ engine, text: t, piperVoice: piper.piperVoice }), engine === "sam" ? 800 : r);
+        await de(playbackMode);
+        await ce({
+            engine, piperServerUrl: piper.piperServerUrl, piperVoice: piper.piperVoice,
+            sileroServerUrl: silero.sileroServerUrl, sileroVoice: silero.sileroVoice,
+            qwenServerUrl: qwen.qwenServerUrl, qwenVoice: qwen.qwenVoice,
+            qwenInstructions: qwen.qwenInstructions, ...portrait
         });
+        await ze(effects);
+        if (n.saveToHistory) await Ze(t);
+        if (!ci(generation.token)) return null;
+        if (engine === "piper" || engine === "silero" || engine === "qwen") {
+            let label = engine === "qwen" ? "Qwen" : engine === "silero" ? "Silero" : "Piper";
+            return await Lo({
+                generation,
+                notification: n.notification || `Generating ${label} voice...`,
+                cancelLog: `SAM Voice: ${label} generation cancelled.`,
+                errorFallback: `${label} generation failed. Check local TTS server.`,
+                originalText: t, playbackMode, speakerPortraitPlaybackSettings: portraitSettings,
+                profileLink: profile,
+                generateFn: (signal) => engine === "qwen"
+                    ? samQwenGenerate({ text: speechText, ...qwen, effects, signal })
+                    : engine === "silero"
+                    ? samGenerateSilero({ text: speechText, ...silero, effects, signal })
+                    : Pa({ text: speechText, ...piper, effects, signal })
+            });
+        }
+        let sam = eo(e);
+        await Je(sam);
+        return ci(generation.token) ? { engine: "sam", text: speechText, effects, playbackMode, ...sam, ...portraitSettings, ...profile } : null;
+    } finally {
+        li(generation.token);
     }
-    let sam = eo(e);
-    await Je(sam);
-    return { engine: "sam", text: et(t), effects, playbackMode, ...sam, ...portraitSettings, ...profile };
 }
-async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s }) {
+async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalText: r, playbackMode: i, speakerPortraitPlaybackSettings: a, profileLink: o, generateFn: s, generation }) {
 	ui.notifications.info(e);
-	let c = oi();
+	let c = generation || oi();
 	try {
+		if (!ci(c.token)) return null;
 		let e = await s(c.signal);
 		return ci(c.token) ? {
 			...e,
@@ -6371,7 +6414,12 @@ async function Lo({ notification: e, cancelLog: t, errorFallback: n, originalTex
 			...o
 		} : null;
 	} catch (e) {
-		return fi(e) ? (console.info(t), null) : (console.error(e), ui.notifications.error(e?.message || n), null);
+		if (!ci(c.token) || fi(e)) { console.info(t); return null; }
+		const message = e?.name === "TimeoutError"
+			? "Сервер TTS не успел сгенерировать речь. Попробуйте более короткую реплику или проверьте сервер."
+			: e?.message || n;
+		console.error(e), ui.notifications.error(message);
+		return null;
 	} finally {
 		li(c.token);
 	}
