@@ -4,20 +4,28 @@ The Qwen3-TTS engine uses the **native `speech.cpp` HTTP API**. No Python wrappe
 
 ## Setup on Windows (RTX 3050 Laptop 4 GB)
 
-This integration was designed for [speech.cpp](https://github.com/nyosegawa/speech.cpp) 0.8.10 and the existing Vulkan installation. For Qwen 1.7B Q6_K:
+This integration was tested with [speech.cpp](https://github.com/nyosegawa/speech.cpp) 0.8.10 and its Windows Vulkan build. For Qwen 1.7B Q6_K:
 
-1. Start PowerShell in `$env:USERPROFILE/qwen-tts`.
-2. Download the model if needed:
+1. If speech.cpp 0.8.10 is not installed, run its [official Windows installer](https://github.com/nyosegawa/speech.cpp/blob/v0.8.10/docs/install.md) in PowerShell:
 
    ```powershell
-   ./speech.exe pull qwen3-tts-1.7b:q6_k
+   & ([scriptblock]::Create((Invoke-RestMethod https://raw.githubusercontent.com/nyosegawa/speech.cpp/v0.8.10/install.ps1))) -Version 0.8.10
+   ```
+
+   The installer adds `speech.exe` to your user PATH. **Open a new PowerShell window** afterward. No particular working directory is required. If you manually unpacked a release instead, use the full path to its executable in the commands below, for example `& 'C:\Tools\speech\speech.exe' pull qwen3-tts-1.7b:q6_k`.
+
+2. Verify that PowerShell can find the executable, then download the model if needed:
+
+   ```powershell
+   Get-Command speech.exe
+   speech.exe pull qwen3-tts-1.7b:q6_k
    ```
 
 3. **Identify the exact browser origin of your Foundry page**. Open the Foundry tab, press F12, and enter `location.origin` in the browser console. An origin is scheme + hostname + port, for example `http://localhost:30000`, without any path or trailing slash.
 4. Start the server, specifying every allowed Foundry origin (modify to match your actual browser URL):
 
    ```powershell
-   ./speech.exe serve qwen3-tts-1.7b:q6_k --device gpu --host 127.0.0.1 --port 8081 --language ru --cors-origin http://localhost:30000 --cors-origin http://127.0.0.1:30000
+   speech.exe serve qwen3-tts-1.7b:q6_k --device gpu --host 127.0.0.1 --port 8081 --language ru --cors-origin http://localhost:30000 --cors-origin http://127.0.0.1:30000
    ```
 
    If Foundry runs at a custom address (e.g. `https://foundry.example.com`), add `--cors-origin https://foundry.example.com` as another argument. **Never use `--cors-origin *`**. Keep the server listening on `127.0.0.1`, not `0.0.0.0`: the service has no authentication.
@@ -30,7 +38,7 @@ This integration was designed for [speech.cpp](https://github.com/nyosegawa/spee
 `speech serve` loads **one synthesis model at a time**. To use 0.6B, shut down the 1.7B server and instead start:
 
 ```powershell
-./speech.exe serve qwen3-tts-0.6b:q6_k --device gpu --host 127.0.0.1 --port 8081 --language ru --cors-origin http://localhost:30000 --cors-origin http://127.0.0.1:30000
+speech.exe serve qwen3-tts-0.6b:q6_k --device gpu --host 127.0.0.1 --port 8081 --language ru --cors-origin http://localhost:30000 --cors-origin http://127.0.0.1:30000
 ```
 
 **Clear Voice Instructions** when using the 0.6B model; only 1.7B supports them. The Qwen panel validates the loaded model before sending any instruction. It shows the active model reported by `/v1/models`. Each saved NPC voice profile stores its server URL, voice and instructions.

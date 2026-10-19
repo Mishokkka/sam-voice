@@ -97,6 +97,57 @@ test('SAM fallback synthesizes nonempty finite samples', async () => {
   assert.ok(samples.every(Number.isFinite));
   assert.ok(samples.some(value => value !== 0));
 });
+
+function loadSamWorker() {
+  const bundle = fs.readFileSync(path.join(__dirname, '../dist/samvoice.js'), 'utf8');
+  const worker = bundle.match(/assets\/(samWorker-[A-Za-z0-9_-]+\.js)/)[1];
+  const replies = [];
+  let receive;
+  const context = vm.createContext({ self: {
+    addEventListener(name, callback) { if (name === 'message') receive = callback; },
+    postMessage(message, transfer = []) {
+      // Exercise real transfer validation and buffer detachment, as in a browser.
+      replies.push(structuredClone(message, { transfer }));
+    }
+  } });
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '../dist/assets', worker), 'utf8'), context);
+  return { send: data => receive({ data }), replies };
+}
+
+test('SAM worker transfers valid audio samples and preserves the request ID', () => {
+  const worker = loadSamWorker();
+  worker.send({ id: 'valid', text: 'HELLO WORLD', settings: {} });
+  assert.equal(worker.replies.length, 1);
+  const reply = worker.replies[0];
+  assert.equal(reply.id, 'valid');
+  assert.equal(reply.ok, true);
+  assert.ok(reply.samples instanceof Float32Array);
+  assert.ok(reply.samples.length > 1000);
+  assert.ok(reply.samples.every(Number.isFinite));
+  assert.ok(reply.samples.some(value => value !== 0));
+});
+
+test('SAM worker explains unsupported text and remains usable for the next request', () => {
+  const worker = loadSamWorker();
+  worker.send({ id: 'unsupported', text: 'Привет', settings: {} });
+  assert.equal(worker.replies.length, 1);
+  assert.deepEqual(worker.replies[0], {
+    id: 'unsupported', ok: false, error: 'SAM cannot pronounce this text.'
+  });
+  worker.send({ id: 'next', text: 'HELLO', settings: {} });
+  assert.equal(worker.replies.length, 2);
+  assert.equal(worker.replies[1].ok, true);
+});
+
+test('SAM fallback rejects unsupported text before allocating an audio buffer', async () => {
+  const { context: c } = loadBundle();
+  let allocations = 0;
+  await assert.rejects(c.Pn.createAudioBuffer({
+    request: { text: 'Привет' }, isCancelled: () => false,
+    audioContext: { createBuffer() { allocations++; throw new Error('invalid audio length'); } }
+  }), /SAM cannot pronounce this text\./);
+  assert.equal(allocations, 0);
+});
 test('cancelled generation discards late results', async () => {
   const { context: c } = loadBundle();
   let finish;

@@ -11,6 +11,9 @@
 - Check audio signatures against declared MIME types before sending generated files.
 - Emit the correct Preview completion status and failures.
 - Restore a dependency-free source/build/test project and deterministic install ZIP packaging.
+- Return a clear unsupported-text error from both the SAM worker and its main-thread fallback.
+- Restrict validation workflow credentials and detect untracked generated assets.
+- Document the versioned Windows speech.cpp installer and invoke the executable through PATH.
 - Preserve the existing UI, profiles, effects and trusted-table sender behavior.
 
 ## 1.4.2 (Qwen3-TTS)

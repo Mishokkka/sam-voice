@@ -3747,7 +3747,9 @@ async function Fn(e, t) {
 	} catch (e) {
 		console.warn("SAM Voice: worker synthesis failed, using main-thread fallback", e), Vn();
 	}
-	return new An(t).buf32(e);
+	let samples = new An(t).buf32(e);
+	if (!(samples instanceof Float32Array) || !samples.length) throw Error("SAM cannot pronounce this text.");
+	return samples;
 }
 function In() {
 	return !Mn && typeof globalThis.Worker == "function";

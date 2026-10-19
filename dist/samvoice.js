@@ -3747,7 +3747,9 @@ async function Fn(e, t) {
 	} catch (e) {
 		console.warn("SAM Voice: worker synthesis failed, using main-thread fallback", e), Vn();
 	}
-	return new An(t).buf32(e);
+	let samples = new An(t).buf32(e);
+	if (!(samples instanceof Float32Array) || !samples.length) throw Error("SAM cannot pronounce this text.");
+	return samples;
 }
 function In() {
 	return !Mn && typeof globalThis.Worker == "function";
@@ -3755,7 +3757,7 @@ function In() {
 function Ln() {
 	return F || (F = new Worker(new URL(
 		/* @vite-ignore */
-		"" + new URL("assets/samWorker-f92368443556.js", import.meta.url).href,
+		"" + new URL("assets/samWorker-bffb1682f180.js", import.meta.url).href,
 		"" + import.meta.url
 	), {
 		type: "module",

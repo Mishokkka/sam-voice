@@ -3,8 +3,12 @@ on: [push, pull_request]
 jobs:
   validate:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -14,4 +18,8 @@ jobs:
       - run: npm ci
       - run: npm run package
       - run: npm run test:silero
-      - run: git diff --exit-code -- dist
+      - name: Check committed build artifacts
+        run: |
+          status=$(git status --porcelain --untracked-files=all -- dist)
+          printf '%s\n' "$status"
+          test -z "$status"
