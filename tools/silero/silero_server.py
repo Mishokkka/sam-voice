@@ -8,6 +8,7 @@ import tempfile
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import torch
 from silero import silero_tts
@@ -21,6 +22,40 @@ MAX_TEXT_LENGTH = 1000
 MAX_WAV_SIZE = 4 * 1024 * 1024
 MAX_REQUEST_SIZE = 16 * 1024
 SAMPLE_RATE = 24000
+DEFAULT_ALLOWED_ORIGINS = ("http://localhost:30000", "http://127.0.0.1:30000")
+
+
+def parse_allowed_origins(value):
+    """Accept only explicit HTTP(S) origins; never permit wildcard or opaque origins."""
+    origins = set()
+    for entry in value.split(","):
+        origin = entry.strip()
+        if not origin:
+            continue
+        parts = urlsplit(origin)
+        try:
+            _ = parts.port
+        except ValueError as exc:
+            raise ValueError(f"Invalid Foundry origin: {origin!r}") from exc
+        if (
+            parts.scheme not in ("http", "https")
+            or not parts.hostname
+            or parts.username is not None
+            or parts.password is not None
+            or parts.path
+            or parts.query
+            or parts.fragment
+            or origin != f"{parts.scheme}://{parts.netloc}"
+            or "*" in origin
+        ):
+            raise ValueError(f"Invalid Foundry origin: {origin!r}")
+        origins.add(origin)
+    return frozenset(origins)
+
+
+ALLOWED_ORIGINS = parse_allowed_origins(
+    os.getenv("SILERO_ALLOWED_ORIGINS", ",".join(DEFAULT_ALLOWED_ORIGINS))
+)
 synthesis_lock = threading.Lock()
 
 
@@ -43,11 +78,13 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", mime)
         self.send_header("Content-Length", str(size))
-        # Only listens on loopback; GM's Foundry page may use another origin.
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Private-Network", "true")
+        self.send_header("Vary", "Origin")
+        origin = self.headers.get("Origin")
+        if origin in ALLOWED_ORIGINS:
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.end_headers()
@@ -63,10 +100,21 @@ class Handler(BaseHTTPRequestHandler):
         payload = json.dumps(obj, ensure_ascii=False).encode("utf-8")
         self._respond(status, payload, "application/json; charset=utf-8")
 
+    def _check_origin(self):
+        origins = self.headers.get_all("Origin", [])
+        if origins and (len(origins) != 1 or origins[0] not in ALLOWED_ORIGINS):
+            self._json(403, {"error": "Origin is not permitted"})
+            return False
+        return True
+
     def do_OPTIONS(self):
+        if not self._check_origin():
+            return
         self._headers(204, "text/plain", 0)
 
     def do_GET(self):
+        if not self._check_origin():
+            return
         if self.path == "/voices":
             self._json(200, {voice: {"name": voice} for voice in VOICES})
         elif self.path in ("/", "/health"):
@@ -75,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
             self._json(404, {"error": "Not found"})
 
     def do_POST(self):
+        if not self._check_origin():
+            return
         if self.path != "/":
             return self._json(404, {"error": "Not found"})
         try:
@@ -125,6 +175,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     global model
     model = load_model()
+    print(f"Allowed Foundry origins: {', '.join(sorted(ALLOWED_ORIGINS)) or '(none)'}", flush=True)
     with ThreadingHTTPServer((HOST, PORT), Handler) as server:
         print(f"Listening on http://{HOST}:{PORT}", flush=True)
         print("Keep this window open during Foundry sessions.", flush=True)
