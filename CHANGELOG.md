@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.2 (Qwen3-TTS)
+
+- Added independent Qwen3-TTS engine using `speech.cpp` OpenAI-compatible HTTP endpoint.
+- Added nine Qwen voices and persistent per-NPC Voice Instructions (only Qwen 1.7B).
+- Kept synchronized playback, audio effects, and existing SAM, Piper and Silero engines.
+- Added local-server setup and exact-origin CORS guidance for Foundry.
+
+
 ## 1.4.1 (Silero integration)
 
 - Added a separate Silero engine (Russian CPU-based TTS) alongside SAM and Piper.
